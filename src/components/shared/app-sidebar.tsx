@@ -48,7 +48,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
         icon: LayoutDashboard,
         href: (s) => `/${s}/dashboard`,
       },
-      { title: "Entregas", icon: HardHat },
+      { title: "Entregas", icon: HardHat, href: (s) => `/${s}/entregas` },
       { title: "Estoque", icon: Boxes, href: (s) => `/${s}/estoque` },
       { title: "Alertas", icon: Bell, badge: 0 },
     ],

@@ -49,6 +49,44 @@ export type Database = {
         };
         Relationships: [];
       };
+      document_log: {
+        Row: {
+          created_at: string;
+          hash: string;
+          id: string;
+          organization_id: string;
+          params: Json;
+          type: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          hash: string;
+          id?: string;
+          organization_id: string;
+          params?: Json;
+          type: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          hash?: string;
+          id?: string;
+          organization_id?: string;
+          params?: Json;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "document_log_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       employees: {
         Row: {
           archived_at: string | null;
@@ -134,6 +172,155 @@ export type Database = {
             columns: ["organization_id", "unit_id"];
             isOneToOne: false;
             referencedRelation: "units";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
+      epi_deliveries: {
+        Row: {
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          content_hash: string;
+          created_at: string;
+          delivered_at: string;
+          delivered_by: string | null;
+          employee_cpf_snapshot: string;
+          employee_id: string;
+          employee_name_snapshot: string;
+          id: string;
+          location_id: string;
+          notes: string | null;
+          organization_id: string;
+          signature_status: Database["public"]["Enums"]["signature_status"];
+          term_text: string;
+        };
+        Insert: {
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          content_hash: string;
+          created_at?: string;
+          delivered_at?: string;
+          delivered_by?: string | null;
+          employee_cpf_snapshot: string;
+          employee_id: string;
+          employee_name_snapshot: string;
+          id?: string;
+          location_id: string;
+          notes?: string | null;
+          organization_id: string;
+          signature_status?: Database["public"]["Enums"]["signature_status"];
+          term_text: string;
+        };
+        Update: {
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          content_hash?: string;
+          created_at?: string;
+          delivered_at?: string;
+          delivered_by?: string | null;
+          employee_cpf_snapshot?: string;
+          employee_id?: string;
+          employee_name_snapshot?: string;
+          id?: string;
+          location_id?: string;
+          notes?: string | null;
+          organization_id?: string;
+          signature_status?: Database["public"]["Enums"]["signature_status"];
+          term_text?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "epi_deliveries_organization_id_employee_id_fkey";
+            columns: ["organization_id", "employee_id"];
+            isOneToOne: false;
+            referencedRelation: "employees";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "epi_deliveries_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "epi_deliveries_organization_id_location_id_fkey";
+            columns: ["organization_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
+      epi_delivery_items: {
+        Row: {
+          ca_expired_override: boolean;
+          ca_number_snapshot: string | null;
+          delivery_id: string;
+          epi_name_snapshot: string;
+          id: string;
+          next_replacement_at: string | null;
+          organization_id: string;
+          quantity: number;
+          reason: Database["public"]["Enums"]["delivery_reason"];
+          return_destination: Database["public"]["Enums"]["return_destination"] | null;
+          return_notes: string | null;
+          returned_at: string | null;
+          size_label_snapshot: string;
+          variant_id: string;
+        };
+        Insert: {
+          ca_expired_override?: boolean;
+          ca_number_snapshot?: string | null;
+          delivery_id: string;
+          epi_name_snapshot: string;
+          id?: string;
+          next_replacement_at?: string | null;
+          organization_id: string;
+          quantity: number;
+          reason: Database["public"]["Enums"]["delivery_reason"];
+          return_destination?: Database["public"]["Enums"]["return_destination"] | null;
+          return_notes?: string | null;
+          returned_at?: string | null;
+          size_label_snapshot: string;
+          variant_id: string;
+        };
+        Update: {
+          ca_expired_override?: boolean;
+          ca_number_snapshot?: string | null;
+          delivery_id?: string;
+          epi_name_snapshot?: string;
+          id?: string;
+          next_replacement_at?: string | null;
+          organization_id?: string;
+          quantity?: number;
+          reason?: Database["public"]["Enums"]["delivery_reason"];
+          return_destination?: Database["public"]["Enums"]["return_destination"] | null;
+          return_notes?: string | null;
+          returned_at?: string | null;
+          size_label_snapshot?: string;
+          variant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "epi_delivery_items_organization_id_delivery_id_fkey";
+            columns: ["organization_id", "delivery_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_deliveries";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "epi_delivery_items_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "epi_delivery_items_organization_id_variant_id_fkey";
+            columns: ["organization_id", "variant_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_variants";
             referencedColumns: ["organization_id", "id"];
           },
         ];
@@ -491,6 +678,127 @@ export type Database = {
           },
         ];
       };
+      signature_requests: {
+        Row: {
+          cancelled_at: string | null;
+          channel: string;
+          created_at: string;
+          created_by: string | null;
+          delivery_id: string;
+          expires_at: string;
+          id: string;
+          organization_id: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        Insert: {
+          cancelled_at?: string | null;
+          channel: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_id: string;
+          expires_at: string;
+          id?: string;
+          organization_id: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          cancelled_at?: string | null;
+          channel?: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_id?: string;
+          expires_at?: string;
+          id?: string;
+          organization_id?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "signature_requests_organization_id_delivery_id_fkey";
+            columns: ["organization_id", "delivery_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_deliveries";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "signature_requests_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      signatures: {
+        Row: {
+          content_hash: string;
+          delivery_id: string;
+          id: string;
+          image_png: string | null;
+          ip: string | null;
+          method: string;
+          organization_id: string;
+          request_id: string;
+          signed_at: string;
+          term_text_snapshot: string;
+          typed_name: string | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          content_hash: string;
+          delivery_id: string;
+          id?: string;
+          image_png?: string | null;
+          ip?: string | null;
+          method: string;
+          organization_id: string;
+          request_id: string;
+          signed_at?: string;
+          term_text_snapshot: string;
+          typed_name?: string | null;
+          user_agent?: string | null;
+        };
+        Update: {
+          content_hash?: string;
+          delivery_id?: string;
+          id?: string;
+          image_png?: string | null;
+          ip?: string | null;
+          method?: string;
+          organization_id?: string;
+          request_id?: string;
+          signed_at?: string;
+          term_text_snapshot?: string;
+          typed_name?: string | null;
+          user_agent?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "signatures_organization_id_delivery_id_fkey";
+            columns: ["organization_id", "delivery_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_deliveries";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "signatures_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "signatures_request_id_fkey";
+            columns: ["request_id"];
+            isOneToOne: false;
+            referencedRelation: "signature_requests";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       stock_locations: {
         Row: {
           archived_at: string | null;
@@ -605,6 +913,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "stock_movements_delivery_item_fk";
+            columns: ["delivery_item_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_delivery_items";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "stock_movements_organization_id_fkey";
             columns: ["organization_id"];
             isOneToOne: false;
@@ -709,6 +1024,25 @@ export type Database = {
       };
     };
     Views: {
+      v_employee_epi_holdings: {
+        Row: {
+          ca_number_snapshot: string | null;
+          delivered_at: string | null;
+          delivery_id: string | null;
+          employee_id: string | null;
+          epi_id: string | null;
+          epi_name: string | null;
+          item_id: string | null;
+          next_replacement_at: string | null;
+          organization_id: string | null;
+          quantity: number | null;
+          replacement_status: string | null;
+          signature_status: Database["public"]["Enums"]["signature_status"] | null;
+          size_label: string | null;
+          variant_id: string | null;
+        };
+        Relationships: [];
+      };
       v_stock_balance: {
         Row: {
           avg_cost: number | null;
@@ -763,6 +1097,13 @@ export type Database = {
         };
         Returns: undefined;
       };
+      cancel_delivery: {
+        Args: {
+          p_delivery: string;
+          p_reason: string;
+        };
+        Returns: undefined;
+      };
       create_epi: {
         Args: {
           p_org: string;
@@ -800,6 +1141,31 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      create_signature_request: {
+        Args: {
+          p_delivery: string;
+          p_channel: string;
+          p_token_hash: string;
+          p_valid_hours?: number;
+        };
+        Returns: string;
+      };
+      deliver_epis: {
+        Args: {
+          p_org: string;
+          p_employee: string;
+          p_location: string;
+          p_items: Json;
+          p_notes?: string;
+        };
+        Returns: string;
+      };
+      delivery_content_hash: {
+        Args: {
+          p_delivery: string;
+        };
+        Returns: string;
+      };
       discard_stock: {
         Args: {
           p_org: string;
@@ -809,6 +1175,35 @@ export type Database = {
           p_reason: string;
         };
         Returns: string;
+      };
+      find_signature_request: {
+        Args: {
+          p_token: string;
+        };
+        Returns: {
+          cancelled_at: string | null;
+          channel: string;
+          created_at: string;
+          created_by: string | null;
+          delivery_id: string;
+          expires_at: string;
+          id: string;
+          organization_id: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "signature_requests";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      get_signature_request: {
+        Args: {
+          p_token: string;
+        };
+        Returns: Json;
       };
       has_org_role: {
         Args: {
@@ -842,6 +1237,17 @@ export type Database = {
         };
         Returns: number;
       };
+      record_signature: {
+        Args: {
+          r: string;
+          p_method: string;
+          p_image_png: string;
+          p_typed_name: string;
+          p_ip: string;
+          p_user_agent: string;
+        };
+        Returns: string;
+      };
       register_stock_entry: {
         Args: {
           p_org: string;
@@ -852,6 +1258,14 @@ export type Database = {
           p_occurred_on?: string;
         };
         Returns: string;
+      };
+      return_epi: {
+        Args: {
+          p_item: string;
+          p_destination: Database["public"]["Enums"]["return_destination"];
+          p_notes?: string;
+        };
+        Returns: undefined;
       };
       reverse_stock_movement: {
         Args: {
@@ -870,10 +1284,34 @@ export type Database = {
         };
         Returns: undefined;
       };
+      sign_delivery: {
+        Args: {
+          p_token: string;
+          p_method: string;
+          p_image_png?: string;
+          p_typed_name?: string;
+          p_ip?: string;
+          p_user_agent?: string;
+        };
+        Returns: string;
+      };
+      sign_delivery_in_person: {
+        Args: {
+          p_delivery: string;
+          p_method: string;
+          p_image_png?: string;
+          p_typed_name?: string;
+          p_user_agent?: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
+      delivery_reason: "primeira_entrega" | "troca_vencimento" | "troca_dano" | "perda" | "novo_cargo" | "outro";
       epi_category: "cabeca" | "olhos_face" | "auditiva" | "respiratoria" | "tronco" | "membros_superiores" | "membros_inferiores" | "corpo_inteiro" | "quedas" | "outro";
       org_role: "owner" | "admin" | "safety" | "storekeeper" | "viewer";
+      return_destination: "estoque" | "descarte";
+      signature_status: "pendente" | "assinada" | "expirada" | "cancelada";
       stock_movement_type: "entrada" | "saida_entrega" | "devolucao" | "descarte" | "ajuste_positivo" | "ajuste_negativo" | "transferencia_entrada" | "transferencia_saida" | "estorno";
     };
     CompositeTypes: {
@@ -985,8 +1423,11 @@ export type Enums<
 export const Constants = {
   public: {
     Enums: {
+      delivery_reason: ["primeira_entrega", "troca_vencimento", "troca_dano", "perda", "novo_cargo", "outro"],
       epi_category: ["cabeca", "olhos_face", "auditiva", "respiratoria", "tronco", "membros_superiores", "membros_inferiores", "corpo_inteiro", "quedas", "outro"],
       org_role: ["owner", "admin", "safety", "storekeeper", "viewer"],
+      return_destination: ["estoque", "descarte"],
+      signature_status: ["pendente", "assinada", "expirada", "cancelada"],
       stock_movement_type: ["entrada", "saida_entrega", "devolucao", "descarte", "ajuste_positivo", "ajuste_negativo", "transferencia_entrada", "transferencia_saida", "estorno"],
     },
   },

@@ -22,6 +22,31 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
   movimento_nao_estornavel:
     "Este tipo de movimento não pode ser estornado aqui. Saídas e devoluções são desfeitas pela entrega.",
   movimento_inexistente: "Movimento não encontrado.",
+  funcionario_invalido: "Funcionário não encontrado ou arquivado.",
+  funcionario_desligado: "Este funcionário está desligado.",
+  entrega_sem_itens: "Adicione pelo menos um EPI à entrega.",
+  item_duplicado:
+    "O mesmo EPI e tamanho aparece duas vezes. Junte as quantidades.",
+  ca_vencido:
+    "Há EPI com CA vencido. Marque “Entregar mesmo assim” para confirmar ou escolha outro item.",
+  entrega_inexistente: "Entrega não encontrada.",
+  entrega_nao_cancelavel:
+    "Só é possível cancelar entregas que ainda não foram assinadas.",
+  cancelamento_fora_do_dia:
+    "A entrega só pode ser cancelada no mesmo dia. Depois disso, registre a devolução.",
+  entrega_com_devolucao:
+    "Esta entrega já tem item devolvido e não pode ser cancelada.",
+  entrega_nao_pendente: "Esta entrega não está mais aguardando assinatura.",
+  entrega_cancelada: "Esta entrega foi cancelada.",
+  token_invalido: "Link de assinatura inválido.",
+  token_usado: "Este link já foi usado. A entrega já está assinada.",
+  token_cancelado:
+    "Este link foi substituído por um mais novo. Peça o link atualizado.",
+  token_expirado: "Este link expirou. Peça um novo link a quem fez a entrega.",
+  conteudo_alterado:
+    "O conteúdo da entrega não confere com o registro original. Fale com o responsável.",
+  assinatura_vazia: "Desenhe sua assinatura antes de confirmar.",
+  item_ja_devolvido: "Este item já foi devolvido.",
 };
 
 /** Mensagens para violações de constraints específicas (nome da constraint → texto). */

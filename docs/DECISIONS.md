@@ -52,3 +52,15 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 **Contexto:** a skill `rls-multitenant` pede garantir que referências cruzadas (cargo, setor, EPI) sejam da mesma organização.
 **Decisão:** cadastros têm `unique (organization_id, id)` e as FKs são compostas `(organization_id, x_id) references x (organization_id, id)`, em vez de trigger `assert_same_org()`.
 **Consequências:** a checagem é declarativa e sempre ativa; os tipos gerados expõem essas FKs para os embeds do PostgREST.
+
+## 2026-09-23 — Assinatura: token como autorização e imagem no banco
+
+**Contexto:** a skill `entrega-epi` previa a página pública chamando `sign_delivery` com o client admin (service role) e a imagem no bucket `signatures`. A service role ainda não está configurada e não queremos depender dela na rota pública.
+**Decisão:** o token do link (32 bytes aleatórios, só o sha256 no banco, 72 h, uso único, reenviar cancela o anterior) é a autorização: `get_signature_request(token)` e `sign_delivery(token, ...)` são `security definer` executáveis por `anon` e devolvem só o mínimo (empresa, primeiro nome, CPF mascarado, itens, termo). A imagem da assinatura (PNG ≤ 300 KB) fica em `signatures.image_png` (bytea), gravada na mesma transação que confere o hash do conteúdo. Assinatura por nome digitado é um método distinto (`method = 'nome_digitado'`). Snapshots (nome/CPF do funcionário, termo, EPI, tamanho, CA) ficam na própria entrega, e o `content_hash` é calculado só a partir deles.
+**Consequências:** sem service role no fluxo de entrega. Rate limit por IP na rota pública fica para a Fase 6 (o token não é adivinhável). Se o volume de imagens crescer, migrar para Storage mantendo o hash.
+
+## 2026-09-23 — PDF com fonte Helvetica
+
+**Contexto:** a skill `pdf-documentos` sugere registrar a fonte Inter no `@react-pdf/renderer`.
+**Decisão:** usar Helvetica (fonte padrão do PDF, com acentos do português) para não depender de download de fonte no servidor.
+**Consequências:** visual um pouco diferente do app; trocar por Inter é só `Font.register` com os arquivos no repositório.
