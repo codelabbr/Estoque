@@ -17,7 +17,9 @@ export async function createOrganization(
     };
   }
 
-  const cnpj = parsed.data.cnpj ? parsed.data.cnpj.replace(/\D/g, "") : null;
+  const cnpj = parsed.data.cnpj
+    ? parsed.data.cnpj.replace(/\D/g, "")
+    : undefined;
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_organization", {
