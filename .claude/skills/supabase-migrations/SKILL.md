@@ -29,9 +29,9 @@ description: Use ao criar ou alterar tabelas, enums, views, funções, triggers 
 ## Funções
 
 - Mutations compostas = função `plpgsql` chamada por `supabase.rpc()`.
-- Por padrão `security invoker`. Use `security definer` só quando necessário (ex.: `has_org_role`, `sign_delivery`) e SEMPRE com `set search_path = public, pg_temp` e checagem explícita de permissão no início:
+- Por padrão `security invoker`. Use `security definer` quando a função escreve em tabela "só via RPC" (ex.: `checkout_tools`, `return_tools`, `has_org_role`, `sign_delivery`) e SEMPRE com `set search_path = public, pg_temp` e checagem explícita de permissão no início:
   ```sql
-  if not has_org_role(p_org, array['owner','admin','safety','storekeeper']::org_role[]) then
+  if not has_org_role(p_org, array['owner','admin','storekeeper']::org_role[]) then
     raise exception 'permissao_negada' using errcode = '42501';
   end if;
   ```
@@ -43,23 +43,34 @@ description: Use ao criar ou alterar tabelas, enums, views, funções, triggers 
 - Sempre `with (security_invoker = true)`.
 - Views pesadas usadas no dashboard: considere materialized view atualizada pelo job, mas só depois de medir.
 
-## Imutabilidade (ledger, entregas, assinaturas, audit_log)
+## Imutabilidade (tool_events, ledger, entregas, assinaturas, audit_log)
 
 ```sql
-create trigger prevent_mutation before update or delete on stock_movements
+create trigger prevent_mutation before update or delete on tool_events
   for each row execute function raise_immutable();
 ```
 
-`raise_immutable()` levanta `registro_imutavel`. Exceção: colunas de devolução em `epi_delivery_items` e `signature_status` em `epi_deliveries` só mudam via função específica (use trigger que compara `OLD`/`NEW` e só permite essas colunas).
+`raise_immutable()` levanta `registro_imutavel`. Exceções que mudam **uma vez**, só via função específica (trigger que compara `OLD`/`NEW`, exige `OLD.closed_at is null` e só permite essas colunas):
+
+- `tool_checkouts`: `closed_at`, `close_type`, `closed_by`, `return_condition`, `return_notes`.
+- `maintenance_orders`: `closed_at`, `closed_by`, `result`, `cost`, `close_notes`.
+- Módulo EPI: colunas de devolução em `epi_delivery_items` e `signature_status` em `epi_deliveries`.
+
+DELETE nessas tabelas é sempre bloqueado.
+
+## Colunas protegidas
+
+Tabela com colunas controladas por RPC (ex.: `tools.status`, `qr_token`, `internal_code`, `location_id`, `archived_at`): `revoke update on <tabela> from authenticated` + `grant update (<colunas livres>)`. Ao adicionar coluna nova editável, lembre de incluí-la no `grant` (senão o update falha com `42501`).
 
 ## Seeds
 
-- `supabase/seed.sql`: 2 organizações de teste, usuários com cada papel, ~30 funcionários, ~20 EPIs com variações, movimentações, entregas e treinamentos com datas espalhadas (vencidos, a vencer, válidos) para o dashboard ter o que mostrar.
-- Seeds de tipos de treinamento padrão ficam na função `create_organization`, não no seed.sql.
+- `supabase/seed.sql`: 2 organizações de teste, usuários com cada papel, 3 locais, ~30 funcionários, ~80 ferramentas em 8 categorias com status variados (disponíveis, em uso no prazo, **atrasadas**, em manutenção, danificadas, perdidas, uma descartada) e histórico de retiradas nos últimos 90 dias, para o dashboard ter o que mostrar. Crie o histórico chamando as RPCs (com `tests.authenticate_as`), não com insert direto, para os eventos ficarem coerentes.
+- Dados padrão de toda organização nova (unidade, local "Almoxarifado", categorias iniciais; nos módulos SST, tipos de treinamento) ficam na função `create_organization`, não no seed.sql.
 
 ## Anti-padrões
 
 - ❌ `select *` em views expostas
-- ❌ Lógica de saldo no TypeScript
+- ❌ Lógica de saldo ou de transição de status no TypeScript
+- ❌ FK simples entre tabelas de negócio (use FK composta com `organization_id`)
 - ❌ `on delete cascade` em tabelas de histórico (use `restrict`)
 - ❌ Migration que depende de dado do seed

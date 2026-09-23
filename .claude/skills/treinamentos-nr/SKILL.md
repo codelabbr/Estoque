@@ -1,9 +1,11 @@
 ---
 name: treinamentos-nr
-description: Use ao trabalhar com treinamentos obrigatórios no Almox SST — tipos de treinamento, validade, certificados, turmas, status e conformidade do funcionário por cargo.
+description: Use ao trabalhar com treinamentos obrigatórios no Almox SST (módulo SST pós-MVP) — tipos de treinamento, validade, certificados, turmas, status e conformidade do funcionário por cargo.
 ---
 
 # Treinamentos e NRs
+
+> Módulo pós-MVP (Fase 9). Não implemente antes de a fase começar. Os tipos de treinamento padrão entram em `create_organization` só quando este módulo for construído (para organizações já existentes, faça backfill na migration).
 
 ## Aviso importante
 

@@ -1,34 +1,26 @@
-# Almox SST — pacote de especificação para o Claude Code
+# Almox SST
 
-Gestão de EPIs, estoque de materiais de segurança e treinamentos (NRs) para pequenas e médias indústrias.
+Gestão de almoxarifado industrial com foco em **controle de ferramentas e equipamentos** para pequenas e médias indústrias: onde está cada ferramenta, com quem, quando volta e todo o histórico de uso, perdas, avarias e manutenções — com retirada e devolução por QR Code no celular. Módulos seguintes: estoque de materiais, solicitações, entrega de EPI (NR-6) e treinamentos (NRs).
 
-## Como usar
-
-1. Crie um repositório vazio e copie todo o conteúdo desta pasta para a raiz (incluindo a pasta oculta `.claude/`).
-2. Abra o Claude Code na raiz do repositório.
-3. Cole o conteúdo de `PROMPT_INICIAL.md` como primeira mensagem.
-4. A cada fase concluída, revise `docs/PROGRESS.md` e peça: "Siga para a Fase N".
-
-## O que tem aqui
+## Documentação
 
 | Arquivo                                  | Para quê                                                         |
 | ---------------------------------------- | ---------------------------------------------------------------- |
-| `PROMPT_INICIAL.md`                      | Mensagem para iniciar o projeto                                  |
 | `CLAUDE.md`                              | Regras permanentes do projeto (o Claude Code lê automaticamente) |
-| `docs/PRD.md`                            | Requisitos completos do produto                                  |
+| `docs/PRD.md`                            | Requisitos do produto                                            |
 | `docs/SCHEMA.md`                         | Modelo de dados de referência (Supabase)                         |
 | `docs/ROADMAP.md`                        | Fases de implementação                                           |
 | `docs/DECISIONS.md` / `docs/PROGRESS.md` | Registro de decisões e progresso                                 |
-| `.claude/skills/*`                       | 11 skills especializadas carregadas conforme a área              |
+| `.claude/skills/*`                       | Skills especializadas carregadas conforme a área                 |
 
 ## Skills
 
-`supabase-migrations`, `rls-multitenant`, `feature-module`, `ui-design-system`, `estoque-movimentacoes`, `entrega-epi`, `treinamentos-nr`, `alertas-jobs`, `pdf-documentos`, `testes-qualidade`, `lgpd-auditoria`.
+`ferramentas-retirada`, `qr-balcao-pwa`, `supabase-migrations`, `rls-multitenant`, `feature-module`, `ui-design-system`, `alertas-jobs`, `pdf-documentos`, `testes-qualidade`, `lgpd-auditoria`, `estoque-movimentacoes`, `entrega-epi`, `treinamentos-nr`.
 
 ## Antes de ir para produção
 
-- Validar prazos de treinamento e textos do termo com um técnico/engenheiro de segurança do trabalho.
 - Revisar Termos de Uso, Política de Privacidade e DPA com advogado.
+- Módulos SST: validar prazos de treinamento e textos do termo com um técnico/engenheiro de segurança do trabalho.
 
 ## Desenvolvimento
 

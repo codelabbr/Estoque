@@ -1,9 +1,11 @@
 ---
 name: entrega-epi
-description: Use ao trabalhar no fluxo de entrega, troca ou devolução de EPI no Almox SST, na assinatura digital do funcionário (tela ou link) e na ficha de EPI. É o fluxo mais crítico do produto.
+description: Use ao trabalhar no fluxo de entrega, troca ou devolução de EPI no Almox SST (módulo SST pós-MVP), na assinatura digital do funcionário (tela ou link) e na ficha de EPI. É o fluxo mais sensível do módulo SST, por valer como prova legal.
 ---
 
 # Entrega de EPI e assinatura
+
+> Módulo pós-MVP (Fase 8). Depende do estoque (Fase 6): EPI é `items` com `kind = 'epi'`, e "variação" aqui é `item_variants`. Não implemente antes de a fase começar.
 
 ## Por que é crítico
 
@@ -11,7 +13,7 @@ A ficha de entrega assinada é o que a empresa apresenta na fiscalização e em 
 
 ## Fluxo de balcão (meta: < 30 segundos)
 
-1. **Buscar funcionário** — combobox com busca por nome, CPF ou matrícula (fase 2: QR do crachá). Funcionário desligado não aparece por padrão.
+1. **Buscar funcionário** — scan do crachá (mesmo QR do núcleo, skill `qr-balcao-pwa`) ou busca por nome, CPF ou matrícula. Funcionário sem CPF: pedir para completar o cadastro antes (a ficha exige CPF). Funcionário desligado não aparece por padrão.
 2. **Painel do funcionário** — cargo, EPIs em posse com próxima troca, e uma seção "Sugeridos" com:
    - EPIs obrigatórios do cargo que ele nunca recebeu (motivo sugerido `primeira_entrega`);
    - itens com `next_replacement_at <= hoje` (motivo `troca_vencimento`).
@@ -32,7 +34,7 @@ Entrada: `p_org, p_employee, p_location, p_items jsonb [{variant_id, quantity, r
 Passos, nesta ordem, na mesma transação:
 
 1. Checa papel (`owner, admin, safety, storekeeper`).
-2. Checa que funcionário, local e variações são da org e ativos.
+2. Checa que funcionário (com CPF → senão `cpf_obrigatorio`), local e variações são da org e ativos.
 3. Para cada item: lock + checa saldo (skill `estoque-movimentacoes`); checa CA (`ca_expires_at < current_date` sem override → `ca_vencido`).
 4. Insere `epi_deliveries` (status `pendente`).
 5. Insere `epi_delivery_items` com `ca_number_snapshot` e `next_replacement_at = delivered_at::date + lifespan_days`.

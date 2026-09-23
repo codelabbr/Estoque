@@ -43,9 +43,9 @@ import { cpfSchema } from "@/lib/validators";
 
 export const employeeSchema = z.object({
   fullName: z.string().trim().min(3, "Informe o nome completo"),
-  cpf: cpfSchema,
   registration: z.string().trim().optional(),
-  jobRoleId: z.string().uuid("Selecione o cargo"),
+  cpf: cpfSchema.optional(), // opcional no núcleo; obrigatório só para ficha de EPI
+  jobRoleId: z.string().uuid("Selecione o cargo").optional(),
   sectorId: z.string().uuid().optional(),
   phone: z.string().optional(),
   hiredAt: z.coerce.date().optional(),
@@ -118,4 +118,5 @@ export async function createEmployee(
 - Formulário: em página (não modal) quando tiver mais de 5 campos; modal/sheet para cadastros curtos (setor, cargo).
 - Após salvar: toast de sucesso + redirecionar para o detalhe.
 - Arquivar em vez de excluir, com `AlertDialog` de confirmação explicando o efeito.
-- Detalhe: cabeçalho com status + abas (ex.: funcionário → EPIs em posse | Entregas | Treinamentos | Histórico).
+- Detalhe: cabeçalho com status + ações contextuais + abas (ex.: ferramenta → Histórico | Retiradas | Manutenções | Fotos | Dados; funcionário → Com ele agora | Retiradas | Ocorrências).
+- Mudança de status nunca é um campo do formulário de edição: é uma ação com RPC própria (skill `ferramentas-retirada`).

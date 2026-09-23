@@ -7,53 +7,79 @@ description: Use ao criar ou alterar qualquer tela ou componente do Almox SST. D
 
 ## Princípios
 
-1. **Balcão primeiro.** A tela de entrega é usada em pé, com pressa, em tablet ou celular. Alvos de toque ≥ 44px, poucos passos, busca que aceita nome/CPF/matrícula.
-2. **Status visível.** O usuário deve saber em um olhar o que está ok, em atenção ou irregular.
-3. **Sóbrio e confiável.** É um produto de segurança e compliance: nada de visual "brincalhão".
+1. **Balcão primeiro.** Retirada e devolução acontecem em pé, com pressa, às vezes de luva, em tablet ou celular. Alvos de toque ≥ 44 px (≥ 56 px no modo balcão), poucos passos, scan antes de digitar.
+2. **Status visível.** Em um olhar: onde está, com quem, se está atrasada.
+3. **Sóbrio e confiável.** É um produto de controle de patrimônio: nada de visual "brincalhão".
 
 ## Base
 
-- shadcn/ui (estilo `new-york`), Tailwind v4, ícones lucide-react, fonte Inter (via `next/font`).
+- shadcn/ui (`radix-nova`, primitivos `Field*` para formulários — ver `docs/DECISIONS.md`), Tailwind v4, ícones lucide-react, fonte Inter (via `next/font`).
 - Tokens em CSS variables no `globals.css`; tema claro e escuro.
-- Cor primária: azul petróleo (`--primary: oklch(0.45 0.09 230)`). Evite laranja/amarelo como primária para não confundir com alerta.
+- Cor primária: azul petróleo. Evite laranja/amarelo como primária para não confundir com alerta.
 
 ## Cores de status (use sempre o componente `<StatusBadge status=... />`)
 
-| Status                                                   | Uso                                                   | Cor           | Ícone           |
-| -------------------------------------------------------- | ----------------------------------------------------- | ------------- | --------------- |
-| `ok` / `valido`                                          | em dia                                                | verde         | `CheckCircle2`  |
-| `atencao` / `a_vencer`                                   | vence em breve                                        | âmbar         | `Clock`         |
-| `irregular` / `vencido`                                  | vencido/faltando                                      | vermelho      | `AlertTriangle` |
-| `pendente`                                               | aguardando ação (assinatura, treinamento nunca feito) | cinza-azulado | `CircleDashed`  |
-| Nunca comunique status só por cor: sempre ícone + texto. |
+### Ferramentas
+
+| Status       | Rótulo     | Cor      | Ícone           |
+| ------------ | ---------- | -------- | --------------- |
+| `disponivel` | Disponível | verde    | `CheckCircle2`  |
+| `em_uso`     | Em uso     | azul     | `UserRound`     |
+| atrasada\*   | Atrasada   | vermelho | `AlarmClock`    |
+| `manutencao` | Manutenção | âmbar    | `Wrench`        |
+| `danificada` | Danificada | laranja  | `TriangleAlert` |
+| `perdida`    | Perdida    | vermelho | `SearchX`       |
+| `descartada` | Descartada | cinza    | `Archive`       |
+
+\* "Atrasada" não é um status do banco: é `em_uso` + `is_overdue`. Mostre `Atrasada · 2 dias` no lugar de "Em uso".
+
+### Genéricos (alertas, módulos SST)
+
+| Status                  | Uso              | Cor           | Ícone           |
+| ----------------------- | ---------------- | ------------- | --------------- |
+| `ok` / `valido`         | em dia           | verde         | `CheckCircle2`  |
+| `atencao` / `a_vencer`  | vence em breve   | âmbar         | `Clock`         |
+| `irregular` / `vencido` | vencido/faltando | vermelho      | `AlertTriangle` |
+| `pendente`              | aguardando ação  | cinza-azulado | `CircleDashed`  |
+
+Nunca comunique status só por cor: sempre ícone + texto.
 
 ## Layout do app
 
-- Sidebar (colapsável; vira `Sheet` no mobile): Dashboard, Entregas (destaque), Funcionários, EPIs, Estoque, Treinamentos, Alertas (com contador), Relatórios, Configurações.
-- Topo: seletor de organização, busca global (⌘K com `Command`: funcionário, EPI), menu do usuário.
-- Botão flutuante "Nova entrega" no mobile.
+- Sidebar (colapsável; vira `Sheet` no mobile), agrupada:
+  - **Operação**: Dashboard, Balcão (destaque), Ferramentas, Retiradas, Funcionários, Manutenções
+  - **Gestão**: Alertas (com contador), Relatórios
+  - **Em breve** (só aparece quando o módulo existir): Materiais, Solicitações, EPIs, Treinamentos
+  - Rodapé: Configurações
+- Topo: seletor de organização, busca global (⌘K com `Command`: ferramenta por nome/código/patrimônio, funcionário), botão de scanner no mobile, menu do usuário.
+- Mobile: barra inferior fixa com **Escanear** no centro (abre o balcão), Ferramentas, Retiradas, Menu.
 
 ## Componentes compartilhados (`src/components/shared/`)
 
-`PageHeader`, `StatusBadge`, `DataTable` (TanStack, com versão card no mobile), `EmptyState`, `ConfirmDialog`, `DateDisplay` (dd/MM/yyyy + relativo "vence em 12 dias"), `CpfInput` (máscara), `PhoneInput`, `EmployeePicker` (combobox com busca server-side), `EpiVariantPicker`, `FileUpload` (drag & drop, preview, limite 10 MB, PDF/JPG/PNG), `SignaturePad`, `KpiCard`, `Can` (renderiza filhos conforme papel).
+`PageHeader`, `StatusBadge`, `DataTable` (TanStack, com versão card no mobile), `EmptyState`, `ConfirmDialog`, `DateDisplay` (dd/MM/yyyy + relativo "há 3 horas", "atrasada há 2 dias"), `CpfInput` (máscara), `PhoneInput`, `MoneyInput`, `EmployeePicker` (combobox com busca server-side), `ToolPicker`, `LocationPicker` (árvore), `QrScanner`, `PhotoCapture` (câmera traseira + compressão), `FileUpload` (drag & drop, preview, limite 10 MB), `Timeline` (histórico de eventos), `KpiCard`, `Can` (renderiza filhos conforme papel). Módulo EPI: `SignaturePad`, `ItemVariantPicker`.
+
+## Fotos
+
+Comprimir no cliente antes do upload: lado maior 1600 px, JPEG qualidade 0,8, remover EXIF (localização). Miniaturas por URL assinada com transformação do Supabase quando disponível.
 
 ## Textos
 
-- pt-BR, frases curtas, voz ativa: "Entrega registrada", "Não foi possível salvar. Tente novamente."
-- Botões com verbo: "Registrar entrega", "Salvar funcionário", "Enviar link de assinatura".
-- Datas `dd/MM/yyyy`; data e hora `dd/MM/yyyy 'às' HH:mm`; números `1.234,56`.
-- Mensagens de erro de campo abaixo do campo, em vermelho, específicas ("CPF inválido", não "Campo inválido").
+- pt-BR, frases curtas, voz ativa: "Retirada registrada", "Não foi possível salvar. Tente novamente."
+- Botões com verbo: "Registrar retirada", "Confirmar devolução", "Imprimir etiquetas", "Salvar ferramenta".
+- Datas `dd/MM/yyyy`; data e hora `dd/MM/yyyy 'às' HH:mm`; números `1.234,56`; moeda `R$ 1.234,56`.
+- Mensagens de erro de campo abaixo do campo, em vermelho, específicas ("Código já usado por outra ferramenta", não "Campo inválido").
 
 ## Estados obrigatórios em toda tela
 
 - Carregando: `Skeleton` com a forma do conteúdo (`loading.tsx`).
-- Vazio: `EmptyState` com explicação e ação ("Nenhum EPI cadastrado. Cadastre o primeiro ou importe uma planilha.").
+- Vazio: `EmptyState` com explicação e ação ("Nenhuma ferramenta cadastrada. Cadastre a primeira ou importe uma planilha.").
 - Erro: `error.tsx` com botão "Tentar novamente".
 - Sem permissão: mensagem clara, não tela em branco.
+- Sem conexão (balcão): faixa fixa e ações desabilitadas.
 
 ## Acessibilidade
 
-Contraste AA, foco visível, `label` em todo input, `aria-live` nos toasts, navegação completa por teclado, `SignaturePad` com alternativa de "assinar digitando o nome" registrada como tipo diferente.
+Contraste AA, foco visível, `label` em todo input, `aria-live` nos toasts e no resultado de cada leitura do scanner, navegação completa por teclado. Módulo EPI: `SignaturePad` com alternativa de "assinar digitando o nome" registrada como tipo diferente.
 
 ## Responsividade
 

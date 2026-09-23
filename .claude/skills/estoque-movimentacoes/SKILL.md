@@ -1,9 +1,11 @@
 ---
 name: estoque-movimentacoes
-description: Use ao trabalhar com estoque de EPIs no Almox SST — entradas, saídas, ajustes, inventário, estorno, saldo, custo médio e estoque mínimo. Contém as regras de negócio do ledger.
+description: Use ao trabalhar com estoque de materiais e EPIs no Almox SST (módulo pós-MVP) — entradas, saídas para consumo, ajustes, inventário, estorno, saldo, custo médio, fornecedores e estoque mínimo. Contém as regras de negócio do ledger. Não se aplica a ferramentas (essas são unidades físicas; ver skill `ferramentas-retirada`).
 ---
 
 # Estoque (ledger de movimentações)
+
+> Módulo pós-MVP (Fase 6). Não implemente antes de a fase começar. Material e EPI são `items` (`kind = 'material' | 'epi'`) com `item_variants`; o local é a mesma tabela `locations` das ferramentas.
 
 ## Regra de ouro
 
@@ -11,16 +13,17 @@ O saldo **não é uma coluna editável**. Saldo = `sum(signed_quantity)` de `sto
 
 ## Tipos e direção
 
-| type                          | direction          | Origem                             | Motivo obrigatório                        |
-| ----------------------------- | ------------------ | ---------------------------------- | ----------------------------------------- |
-| `entrada`                     | +1                 | `register_stock_entry`             | não (fornecedor e documento recomendados) |
-| `saida_entrega`               | -1                 | `deliver_epis`                     | não (vem da entrega)                      |
-| `devolucao`                   | +1                 | `return_epi` com destino `estoque` | não                                       |
-| `descarte`                    | -1                 | `discard_stock`                    | sim                                       |
-| `ajuste_positivo`             | +1                 | `adjust_stock` / inventário        | sim                                       |
-| `ajuste_negativo`             | -1                 | `adjust_stock` / inventário        | sim                                       |
-| `transferencia_saida/entrada` | -1/+1              | fase 2                             | não                                       |
-| `estorno`                     | oposto do original | `reverse_stock_movement`           | sim                                       |
+| type                          | direction          | Origem                              | Motivo obrigatório                        |
+| ----------------------------- | ------------------ | ----------------------------------- | ----------------------------------------- |
+| `entrada`                     | +1                 | `register_stock_entry`              | não (fornecedor e documento recomendados) |
+| `saida_consumo`               | -1                 | `consume_stock` (funcionário/setor) | não (funcionário ou setor obrigatório)    |
+| `saida_entrega`               | -1                 | `deliver_epis`                      | não (vem da entrega)                      |
+| `devolucao`                   | +1                 | `return_epi` com destino `estoque`  | não                                       |
+| `descarte`                    | -1                 | `discard_stock`                     | sim                                       |
+| `ajuste_positivo`             | +1                 | `adjust_stock` / inventário         | sim                                       |
+| `ajuste_negativo`             | -1                 | `adjust_stock` / inventário         | sim                                       |
+| `transferencia_saida/entrada` | -1/+1              | fase 2                              | não                                       |
+| `estorno`                     | oposto do original | `reverse_stock_movement`            | sim                                       |
 
 ## Saldo nunca negativo
 
@@ -56,26 +59,27 @@ select m.organization_id, m.location_id, m.variant_id,
        sum(m.signed_quantity)::int as balance,
        v.min_stock,
        sum(m.signed_quantity) < v.min_stock as below_min
-from stock_movements m join epi_variants v on v.id = m.variant_id
+from stock_movements m join item_variants v on v.id = m.variant_id
 group by 1,2,3, v.min_stock;
 ```
 
-Variações sem nenhuma movimentação devem aparecer com saldo 0 na tela (faça `left join` a partir de `epi_variants` na query da tela).
+Variações sem nenhuma movimentação devem aparecer com saldo 0 na tela (faça `left join` a partir de `item_variants` na query da tela).
 
 ## Sugestão de compra
 
-`sugestao = greatest(0, min_stock - balance) + trocas_previstas_30d` onde `trocas_previstas_30d` = itens em posse (`v_employee_epi_holdings`) daquela variação com `next_replacement_at <= current_date + 30`.
+`sugestao = greatest(0, min_stock - balance) + consumo_previsto_30d`. Para materiais, `consumo_previsto_30d` = média diária de `saida_consumo` dos últimos 90 dias × 30. Para EPI, some as trocas previstas (`v_employee_epi_holdings` com `next_replacement_at <= current_date + 30`). Sugestão é só informativa: não existe pedido de compra (fora de escopo).
 
 ## Telas
 
-- **Posição de estoque**: tabela por EPI com linhas por tamanho; colunas saldo, mínimo, status, custo médio, última entrada; filtros "abaixo do mínimo", categoria, local.
-- **Nova entrada**: cabeçalho (fornecedor, documento, data) + grade de itens (EPI → tamanho → qtd → custo unitário → lote/validade). Adicionar várias linhas rápido; total no rodapé.
+- **Posição de estoque**: tabela por item com linhas por tamanho; colunas saldo, mínimo, status, custo médio, última entrada; filtros "abaixo do mínimo", tipo (material/EPI), local.
+- **Nova entrada**: cabeçalho (fornecedor, documento em texto livre, data) + grade de itens (item → tamanho → qtd → custo unitário → lote/validade). Adicionar várias linhas rápido; total no rodapé.
+- **Saída para consumo**: funcionário ou setor + itens; pode ser feita no balcão (scan do crachá).
 - **Inventário**: lista todas as variações com saldo do sistema e campo "contado"; ao finalizar, mostra diferenças e gera ajustes com um motivo comum ("Inventário dd/MM/yyyy").
-- **Movimentações**: extrato filtrável por período, tipo, EPI, usuário; cada linha linka para a origem (entrega, entrada).
+- **Movimentações**: extrato filtrável por período, tipo, item, setor, usuário; cada linha linka para a origem (entrada, consumo, entrega).
 
 ## Testes obrigatórios
 
-- Entrada soma; entrega subtrai; devolução para estoque soma; devolução para descarte não soma.
+- Entrada soma; consumo e entrega subtraem; devolução para estoque soma; devolução para descarte não soma.
 - Saída maior que saldo falha com `saldo_insuficiente`.
 - Duas entregas concorrentes da última unidade: só uma passa.
 - Estorno duplo falha. UPDATE/DELETE no ledger falha.
