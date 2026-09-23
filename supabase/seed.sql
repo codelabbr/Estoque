@@ -1,0 +1,8 @@
+-- Seed local (aplicado por `pnpm db:reset`).
+-- Fase 0 não tem dados de negócio ainda (sem funcionários, EPIs, estoque).
+-- Crie sua conta e primeira organização pelo app (/cadastro → /onboarding).
+--
+-- A partir da Fase 1, este arquivo passa a incluir dados de exemplo:
+-- 2 organizações de teste, um usuário por papel, ~30 funcionários, ~20 EPIs
+-- com variações, movimentações, entregas e treinamentos com datas espalhadas
+-- (vencidos, a vencer, válidos), conforme a skill `supabase-migrations`.
