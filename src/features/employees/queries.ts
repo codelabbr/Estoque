@@ -101,3 +101,20 @@ export async function getEmployeeFormOptions(orgId: string) {
     units: units.data ?? [],
   };
 }
+
+/** Status de conformidade (ok/atencao/irregular) para uma página de funcionários. */
+export async function getComplianceByEmployee(
+  orgId: string,
+  employeeIds: string[],
+) {
+  if (employeeIds.length === 0) return {} as Record<string, string>;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("v_employee_compliance")
+    .select("employee_id, status")
+    .eq("organization_id", orgId)
+    .in("employee_id", employeeIds);
+  return Object.fromEntries(
+    (data ?? []).map((r) => [r.employee_id!, r.status!]),
+  ) as Record<string, string>;
+}

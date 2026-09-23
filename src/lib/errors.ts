@@ -47,6 +47,7 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
     "O conteúdo da entrega não confere com o registro original. Fale com o responsável.",
   assinatura_vazia: "Desenhe sua assinatura antes de confirmar.",
   item_ja_devolvido: "Este item já foi devolvido.",
+  turma_sem_participantes: "Selecione pelo menos um participante.",
 };
 
 /** Mensagens para violações de constraints específicas (nome da constraint → texto). */

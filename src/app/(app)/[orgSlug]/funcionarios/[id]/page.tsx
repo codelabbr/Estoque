@@ -5,8 +5,10 @@ import {
   Archive,
   ChevronRight,
   FileText,
+  GraduationCap,
   HardHat,
   Pencil,
+  Plus,
   RotateCcw,
   UserMinus,
 } from "lucide-react";
@@ -41,6 +43,18 @@ import {
   SIGNATURE_STATUS,
 } from "@/features/deliveries/constants";
 import { HoldingActions } from "@/features/deliveries/components/HoldingActions";
+import {
+  getEmployeeCompliance,
+  getEmployeeTrainingHistory,
+  getEmployeeTrainingStatus,
+} from "@/features/trainings/queries";
+import {
+  COMPLIANCE_STATUS,
+  ISSUE_LABELS,
+  TRAINING_STATUS,
+  type TrainingStatus,
+} from "@/features/trainings/constants";
+import { CertificateLink } from "@/features/trainings/components/CertificateLink";
 
 export const metadata: Metadata = { title: "Funcionário — Almox SST" };
 
@@ -56,10 +70,17 @@ export default async function EmployeeDetailPage({
   const canEdit = canManageRegistry(role);
   const canOperate = canOperateStock(role);
   const inactive = !!employee.terminated_at || !!employee.archived_at;
-  const [holdings, deliveries] = await Promise.all([
-    getEmployeeHoldings(org.id, id),
-    listDeliveries(org.id, { filter: "todas", page: 1, employeeId: id }),
-  ]);
+  const [holdings, deliveries, trainings, history, compliance] =
+    await Promise.all([
+      getEmployeeHoldings(org.id, id),
+      listDeliveries(org.id, { filter: "todas", page: 1, employeeId: id }),
+      getEmployeeTrainingStatus(org.id, id),
+      getEmployeeTrainingHistory(org.id, id),
+      getEmployeeCompliance(org.id, id),
+    ]);
+  const complianceStatus = compliance
+    ? COMPLIANCE_STATUS[compliance.status]
+    : null;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
@@ -85,6 +106,12 @@ export default async function EmployeeDetailPage({
             )}
             {employee.archived_at && (
               <StatusBadge status="pendente" label="Arquivado" />
+            )}
+            {complianceStatus && (
+              <StatusBadge
+                status={complianceStatus.status}
+                label={complianceStatus.label}
+              />
             )}
           </span>
         }
@@ -174,6 +201,39 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
+      {compliance && compliance.issues.length > 0 && (
+        <Panel className="animate-fade-up">
+          <PanelHeader
+            title="Pendências"
+            description="O que falta para este funcionário ficar em dia."
+          />
+          <ul>
+            {compliance.issues.map((issue, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-3 border-b px-4 py-2.5 last:border-b-0 sm:px-5"
+              >
+                <StatusBadge
+                  status={
+                    issue.severity === "irregular" ? "irregular" : "atencao"
+                  }
+                  label={ISSUE_LABELS[issue.kind] ?? issue.kind}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm">
+                  <strong>{issue.label}</strong>
+                  {issue.due_date && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {describeDue(issue.due_date)}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
       <Panel className="animate-fade-up">
         <PanelHeader
           title="EPIs em posse"
@@ -227,6 +287,111 @@ export default async function EmployeeDetailPage({
               );
             })}
           </ul>
+        )}
+      </Panel>
+
+      <Panel className="animate-fade-up">
+        <PanelHeader
+          title="Treinamentos"
+          actions={
+            canEdit &&
+            !inactive && (
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="rounded-full"
+              >
+                <Link
+                  href={`/${orgSlug}/treinamentos/registrar?funcionario=${id}`}
+                >
+                  <Plus /> Registrar
+                </Link>
+              </Button>
+            )
+          }
+        />
+        {trainings.length === 0 ? (
+          <p className="text-muted-foreground px-4 py-8 text-center text-sm sm:px-5">
+            {employee.job_roles
+              ? "O cargo não exige treinamentos e não há registros."
+              : "Sem cargo definido e sem registros."}
+          </p>
+        ) : (
+          <ul>
+            {trainings.map((t) => {
+              const st =
+                TRAINING_STATUS[(t.status ?? "pendente") as TrainingStatus];
+              return (
+                <li
+                  key={t.training_type_id}
+                  className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:px-5"
+                >
+                  <GraduationCap
+                    className="text-primary size-5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold">
+                      {t.training_name}
+                      {t.required && (
+                        <span className="text-muted-foreground text-xs font-normal">
+                          {" "}
+                          · obrigatório
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-muted-foreground truncate text-sm">
+                      {t.completed_at
+                        ? [
+                            `Concluído em ${formatDate(t.completed_at)}`,
+                            t.expires_at
+                              ? describeDue(t.expires_at)
+                              : "sem vencimento",
+                            !t.has_certificate && "sem certificado",
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")
+                        : "Nunca realizado"}
+                    </p>
+                  </div>
+                  <StatusBadge status={st.status} label={st.label} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {history.length > 0 && (
+          <details className="border-t">
+            <summary className="text-muted-foreground cursor-pointer px-4 py-3 text-sm sm:px-5">
+              Histórico completo ({history.length})
+            </summary>
+            <ul>
+              {history.map((h) => (
+                <li
+                  key={h.id}
+                  className="flex items-center gap-3 border-t px-4 py-2 text-sm sm:px-5"
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {h.training_types?.name} · {formatDate(h.completed_at)}
+                    {h.expires_at && ` → ${formatDate(h.expires_at)}`}
+                    {h.provider && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {h.provider}
+                      </span>
+                    )}
+                  </span>
+                  {h.certificate_path && (
+                    <CertificateLink
+                      orgSlug={orgSlug}
+                      path={h.certificate_path}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </Panel>
 

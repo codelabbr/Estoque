@@ -19,6 +19,9 @@ import {
   type EmployeeFilter,
 } from "@/features/employees/queries";
 
+import { getComplianceByEmployee } from "@/features/employees/queries";
+import { COMPLIANCE_STATUS } from "@/features/trainings/constants";
+
 export const metadata: Metadata = { title: "Funcionários — Almox SST" };
 
 const FILTERS: { value: EmployeeFilter; label: string }[] = [
@@ -46,6 +49,10 @@ export default async function EmployeesPage({
     page,
     jobRoleId: sp.cargo,
   });
+  const compliance = await getComplianceByEmployee(
+    org.id,
+    rows.map((r) => r.id),
+  );
   const canEdit = canManageRegistry(role);
 
   const href = (overrides: Record<string, string | undefined>) => {
@@ -151,13 +158,21 @@ export default async function EmployeesPage({
                         .join(" · ")}
                     </p>
                   </div>
-                  {e.terminated_at && (
+                  {e.terminated_at ? (
                     <span className="hidden sm:block">
                       <StatusBadge
                         status="pendente"
                         label={`Desligado em ${formatDate(e.terminated_at)}`}
                       />
                     </span>
+                  ) : (
+                    compliance[e.id] && (
+                      <StatusBadge
+                        status={COMPLIANCE_STATUS[compliance[e.id]].status}
+                        label={COMPLIANCE_STATUS[compliance[e.id]].label}
+                        className="hidden sm:inline-flex"
+                      />
+                    )
                   )}
                   <ChevronRight
                     className="text-muted-foreground size-4 shrink-0"

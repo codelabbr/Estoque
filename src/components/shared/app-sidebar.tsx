@@ -63,7 +63,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       },
       { title: "EPIs", icon: ShieldCheck, href: (s) => `/${s}/epis` },
       { title: "Cargos", icon: BriefcaseBusiness, href: (s) => `/${s}/cargos` },
-      { title: "Treinamentos", icon: GraduationCap },
+      {
+        title: "Treinamentos",
+        icon: GraduationCap,
+        href: (s) => `/${s}/treinamentos`,
+      },
     ],
   },
   {

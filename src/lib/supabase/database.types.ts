@@ -87,6 +87,82 @@ export type Database = {
           },
         ];
       };
+      employee_trainings: {
+        Row: {
+          batch_id: string | null;
+          certificate_path: string | null;
+          completed_at: string;
+          created_at: string;
+          created_by: string | null;
+          employee_id: string;
+          expires_at: string | null;
+          expires_manually: boolean;
+          id: string;
+          instructor: string | null;
+          notes: string | null;
+          organization_id: string;
+          provider: string | null;
+          training_type_id: string;
+          workload_hours: number | null;
+        };
+        Insert: {
+          batch_id?: string | null;
+          certificate_path?: string | null;
+          completed_at: string;
+          created_at?: string;
+          created_by?: string | null;
+          employee_id: string;
+          expires_at?: string | null;
+          expires_manually?: boolean;
+          id?: string;
+          instructor?: string | null;
+          notes?: string | null;
+          organization_id: string;
+          provider?: string | null;
+          training_type_id: string;
+          workload_hours?: number | null;
+        };
+        Update: {
+          batch_id?: string | null;
+          certificate_path?: string | null;
+          completed_at?: string;
+          created_at?: string;
+          created_by?: string | null;
+          employee_id?: string;
+          expires_at?: string | null;
+          expires_manually?: boolean;
+          id?: string;
+          instructor?: string | null;
+          notes?: string | null;
+          organization_id?: string;
+          provider?: string | null;
+          training_type_id?: string;
+          workload_hours?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "employee_trainings_organization_id_employee_id_fkey";
+            columns: ["organization_id", "employee_id"];
+            isOneToOne: false;
+            referencedRelation: "employees";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "employee_trainings_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "employee_trainings_organization_id_training_type_id_fkey";
+            columns: ["organization_id", "training_type_id"];
+            isOneToOne: false;
+            referencedRelation: "training_types";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
       employees: {
         Row: {
           archived_at: string | null;
@@ -1024,6 +1100,18 @@ export type Database = {
       };
     };
     Views: {
+      v_employee_compliance: {
+        Row: {
+          employee_id: string | null;
+          employee_name: string | null;
+          issues: Json | null;
+          job_role_id: string | null;
+          organization_id: string | null;
+          sector_id: string | null;
+          status: string | null;
+        };
+        Relationships: [];
+      };
       v_employee_epi_holdings: {
         Row: {
           ca_number_snapshot: string | null;
@@ -1040,6 +1128,25 @@ export type Database = {
           signature_status: Database["public"]["Enums"]["signature_status"] | null;
           size_label: string | null;
           variant_id: string | null;
+        };
+        Relationships: [];
+      };
+      v_employee_training_status: {
+        Row: {
+          completed_at: string | null;
+          employee_id: string | null;
+          employee_name: string | null;
+          expires_at: string | null;
+          has_certificate: boolean | null;
+          job_role_id: string | null;
+          last_training_id: string | null;
+          organization_id: string | null;
+          regulation: string | null;
+          required: boolean | null;
+          sector_id: string | null;
+          status: string | null;
+          training_name: string | null;
+          training_type_id: string | null;
         };
         Relationships: [];
       };
@@ -1256,6 +1363,20 @@ export type Database = {
           p_supplier?: string;
           p_document_ref?: string;
           p_occurred_on?: string;
+        };
+        Returns: string;
+      };
+      register_training_batch: {
+        Args: {
+          p_org: string;
+          p_training_type: string;
+          p_completed_at: string;
+          p_employee_ids: string[];
+          p_provider?: string;
+          p_instructor?: string;
+          p_workload_hours?: number;
+          p_certificate_path?: string;
+          p_expires_at?: string;
         };
         Returns: string;
       };
