@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { mapDbError } from "@/lib/errors";
+import { mapAuthError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/url";
 import type { ActionResult } from "@/lib/actions";
 import {
@@ -28,13 +28,7 @@ export async function signInWithPassword(
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
-    return {
-      ok: false,
-      error:
-        error.code === "invalid_credentials"
-          ? "E-mail ou senha incorretos."
-          : mapDbError(error),
-    };
+    return { ok: false, error: mapAuthError(error) };
   }
 
   return { ok: true, data: undefined };
@@ -60,7 +54,7 @@ export async function signUpWithPassword(
       emailRedirectTo: `${getSiteUrl()}/auth/confirm?type=signup&next=/onboarding`,
     },
   });
-  if (error) return { ok: false, error: mapDbError(error) };
+  if (error) return { ok: false, error: mapAuthError(error) };
 
   return { ok: true, data: undefined };
 }
@@ -84,7 +78,7 @@ export async function signInWithMagicLink(
       emailRedirectTo: `${getSiteUrl()}/auth/confirm?type=magiclink&next=/`,
     },
   });
-  if (error) return { ok: false, error: mapDbError(error) };
+  if (error) return { ok: false, error: mapAuthError(error) };
 
   return { ok: true, data: undefined };
 }
@@ -110,7 +104,7 @@ export async function requestPasswordReset(
   );
   // Não revelar se o e-mail existe ou não (evita enumeração de contas).
   if (error && error.code !== "user_not_found") {
-    return { ok: false, error: mapDbError(error) };
+    return { ok: false, error: mapAuthError(error) };
   }
 
   return { ok: true, data: undefined };
@@ -130,7 +124,7 @@ export async function updatePassword(input: unknown): Promise<ActionResult> {
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
-  if (error) return { ok: false, error: mapDbError(error) };
+  if (error) return { ok: false, error: mapAuthError(error) };
 
   return { ok: true, data: undefined };
 }

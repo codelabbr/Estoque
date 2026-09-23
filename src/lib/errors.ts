@@ -36,3 +36,38 @@ export function mapDbError(error: DbErrorLike): string {
       return "Não foi possível salvar. Tente novamente.";
   }
 }
+
+/** Mensagens pt-BR para códigos de erro do Supabase Auth (`error.code`). */
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: "E-mail ou senha incorretos.",
+  email_not_confirmed:
+    "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.",
+  user_already_exists: "Este e-mail já está cadastrado. Tente entrar.",
+  email_exists: "Este e-mail já está cadastrado. Tente entrar.",
+  weak_password: "A senha é muito fraca. Use pelo menos 8 caracteres.",
+  same_password: "A nova senha precisa ser diferente da atual.",
+  over_email_send_rate_limit:
+    "Muitos e-mails enviados. Aguarde alguns minutos e tente novamente.",
+  over_request_rate_limit:
+    "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+  email_address_not_authorized:
+    "Não foi possível enviar e-mail para este endereço. Fale com o suporte.",
+  email_address_invalid: "E-mail inválido.",
+  signup_disabled: "Novos cadastros estão desativados no momento.",
+  user_banned: "Este usuário está bloqueado. Fale com o administrador.",
+  session_not_found: "Sua sessão expirou. Faça login novamente.",
+  otp_expired: "Este link expirou. Solicite um novo.",
+};
+
+/** Mapeia erros do Supabase Auth para mensagens em pt-BR. Registra o erro original no servidor. */
+export function mapAuthError(error: DbErrorLike & { status?: number }): string {
+  const friendly = error.code ? AUTH_ERROR_MESSAGES[error.code] : undefined;
+  if (friendly) return friendly;
+
+  console.error("[auth] erro não mapeado", {
+    code: error.code,
+    status: error.status,
+    message: error.message,
+  });
+  return "Não foi possível concluir. Tente novamente em instantes.";
+}
