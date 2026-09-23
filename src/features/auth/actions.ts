@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { mapDbError } from "@/lib/errors";
-import { getSiteUrl } from "@/lib/url";
+import { getSiteUrl, safeNextPath } from "@/lib/url";
 import type { ActionResult } from "@/lib/actions";
 import {
   loginSchema,
@@ -67,6 +67,7 @@ export async function signUpWithPassword(
 
 export async function signInWithMagicLink(
   input: unknown,
+  next?: string,
 ): Promise<ActionResult> {
   const parsed = magicLinkSchema.safeParse(input);
   if (!parsed.success) {
@@ -81,7 +82,7 @@ export async function signInWithMagicLink(
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
-      emailRedirectTo: `${getSiteUrl()}/auth/confirm?type=magiclink&next=/`,
+      emailRedirectTo: `${getSiteUrl()}/auth/confirm?type=magiclink&next=${encodeURIComponent(safeNextPath(next))}`,
     },
   });
   if (error) return { ok: false, error: mapDbError(error) };
