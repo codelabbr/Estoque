@@ -16,7 +16,9 @@
     "test:db": "supabase test db",
     "supabase": "supabase",
     "db:migrate": "supabase migration up",
-    "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "db:push": "supabase db push",
+    "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
+    "db:types:local": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "db:reset": "supabase db reset",
     "prepare": "husky"
   },
