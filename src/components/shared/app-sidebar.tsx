@@ -108,7 +108,7 @@ export function AppSidebar({
                           asChild
                           isActive={isActive}
                           tooltip={item.title}
-                          className="data-[active=true]:bg-sidebar-accent data-[active=true]:before:bg-primary relative h-9 font-medium transition-colors data-[active=true]:before:absolute data-[active=true]:before:inset-y-2 data-[active=true]:before:left-0 data-[active=true]:before:w-[3px] data-[active=true]:before:rounded-full"
+                          className="data-[active=true]:hover:bg-sidebar-accent h-11 gap-4 rounded-full px-3 text-[15px] font-medium transition-colors data-[active=true]:bg-transparent data-[active=true]:font-extrabold [&_svg]:size-5"
                         >
                           <Link href={href}>
                             <item.icon />
@@ -119,7 +119,7 @@ export function AppSidebar({
                         <SidebarMenuButton
                           aria-disabled="true"
                           tooltip={`${item.title} — em breve`}
-                          className="text-sidebar-foreground/50 hover:text-sidebar-foreground/50 h-9 cursor-not-allowed hover:bg-transparent"
+                          className="text-sidebar-foreground/45 hover:text-sidebar-foreground/45 h-11 cursor-not-allowed gap-4 rounded-full px-3 text-[15px] hover:bg-transparent [&_svg]:size-5"
                         >
                           <item.icon />
                           <span>{item.title}</span>

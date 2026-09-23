@@ -43,7 +43,7 @@ export default async function DashboardPage({
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-8">
-      <div className="animate-fade-up overflow-hidden rounded-2xl border">
+      <div className="animate-fade-up overflow-clip rounded-2xl border">
         <header className="bg-background/80 sticky top-14 z-10 border-b px-4 py-3 backdrop-blur-xl sm:px-5">
           <h1 className="text-xl font-extrabold tracking-tight">
             {greeting()}, {name}
