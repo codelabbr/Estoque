@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
-import { Archive, Building2, Layers, Pencil, Plus, UserX } from "lucide-react";
+import {
+  Archive,
+  Building2,
+  Layers,
+  Pencil,
+  Plus,
+  UserX,
+  Warehouse,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { Panel, PanelHeader } from "@/components/shared/panel";
@@ -28,6 +36,8 @@ import {
   removeMember,
 } from "@/features/organizations/actions";
 import { OrganizationSettingsForm } from "@/features/organizations/components/OrganizationSettingsForm";
+import { listLocations } from "@/features/stock/queries";
+import { archiveLocation, createLocation } from "@/features/stock/actions";
 
 export const metadata: Metadata = { title: "Configurações — Almox SST" };
 
@@ -87,11 +97,18 @@ export default async function SettingsPage({
       )}
 
       {tab === "estrutura" && (
-        <StructureTab
-          orgSlug={orgSlug}
-          orgId={org.id}
-          canEdit={canManageRegistry(role)}
-        />
+        <>
+          <StructureTab
+            orgSlug={orgSlug}
+            orgId={org.id}
+            canEdit={canManageRegistry(role)}
+          />
+          <LocationsPanel
+            orgSlug={orgSlug}
+            orgId={org.id}
+            canEdit={isOrgAdmin(role)}
+          />
+        </>
       )}
       {tab === "equipe" && (
         <TeamTab
@@ -377,6 +394,90 @@ async function TeamTab({
                   action={removeMember.bind(null, orgSlug, m.user_id)}
                 />
               </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+async function LocationsPanel({
+  orgSlug,
+  orgId,
+  canEdit,
+}: {
+  orgSlug: string;
+  orgId: string;
+  canEdit: boolean;
+}) {
+  const locations = await listLocations(orgId);
+  return (
+    <Panel className="animate-fade-up">
+      <PanelHeader
+        title="Locais de estoque"
+        description="Almoxarifados com saldo próprio. A maioria das empresas usa só o principal."
+        actions={
+          canEdit && (
+            <DialogForm
+              trigger={
+                <Button size="sm" variant="outline" className="rounded-full">
+                  <Plus /> Local
+                </Button>
+              }
+              title="Novo local de estoque"
+              fields={[
+                {
+                  name: "name",
+                  label: "Nome",
+                  required: true,
+                  placeholder: "Ex.: Almoxarifado Planta 2",
+                },
+              ]}
+              submitLabel="Criar"
+              successMessage="Local criado"
+              action={createLocation.bind(null, orgSlug)}
+            />
+          )
+        }
+      />
+      <ul>
+        {locations.map((l) => (
+          <li
+            key={l.id}
+            className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:px-5"
+          >
+            <Warehouse
+              className="text-primary size-5 shrink-0"
+              aria-hidden="true"
+            />
+            <span className="flex-1 font-medium">
+              {l.name}
+              {l.is_default && (
+                <span className="text-muted-foreground text-sm font-normal">
+                  {" "}
+                  · padrão
+                </span>
+              )}
+            </span>
+            {canEdit && !l.is_default && (
+              <ConfirmDialog
+                trigger={
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full"
+                    aria-label={`Arquivar ${l.name}`}
+                  >
+                    <Archive />
+                  </Button>
+                }
+                title={`Arquivar ${l.name}?`}
+                description="Só é possível arquivar locais sem saldo. O histórico de movimentações é mantido."
+                confirmLabel="Arquivar"
+                successMessage="Local arquivado"
+                action={archiveLocation.bind(null, orgSlug, l.id)}
+              />
             )}
           </li>
         ))}

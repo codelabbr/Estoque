@@ -491,6 +491,149 @@ export type Database = {
           },
         ];
       };
+      stock_locations: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          is_default: boolean;
+          name: string;
+          organization_id: string;
+          unit_id: string | null;
+        };
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_default?: boolean;
+          name: string;
+          organization_id: string;
+          unit_id?: string | null;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          organization_id?: string;
+          unit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_locations_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: true;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_locations_organization_id_unit_id_fkey";
+            columns: ["organization_id", "unit_id"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
+      stock_movements: {
+        Row: {
+          batch: string | null;
+          batch_expires_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          delivery_item_id: string | null;
+          direction: number;
+          document_ref: string | null;
+          group_id: string | null;
+          id: string;
+          location_id: string;
+          occurred_on: string;
+          organization_id: string;
+          quantity: number;
+          reason: string | null;
+          reverses_id: string | null;
+          signed_quantity: number | null;
+          supplier: string | null;
+          type: Database["public"]["Enums"]["stock_movement_type"];
+          unit_cost: number | null;
+          variant_id: string;
+        };
+        Insert: {
+          batch?: string | null;
+          batch_expires_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_item_id?: string | null;
+          direction: number;
+          document_ref?: string | null;
+          group_id?: string | null;
+          id?: string;
+          location_id: string;
+          occurred_on?: string;
+          organization_id: string;
+          quantity: number;
+          reason?: string | null;
+          reverses_id?: string | null;
+          signed_quantity?: never;
+          supplier?: string | null;
+          type: Database["public"]["Enums"]["stock_movement_type"];
+          unit_cost?: number | null;
+          variant_id: string;
+        };
+        Update: {
+          batch?: string | null;
+          batch_expires_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_item_id?: string | null;
+          direction?: number;
+          document_ref?: string | null;
+          group_id?: string | null;
+          id?: string;
+          location_id?: string;
+          occurred_on?: string;
+          organization_id?: string;
+          quantity?: number;
+          reason?: string | null;
+          reverses_id?: string | null;
+          signed_quantity?: never;
+          supplier?: string | null;
+          type?: Database["public"]["Enums"]["stock_movement_type"];
+          unit_cost?: number | null;
+          variant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_location_id_fkey";
+            columns: ["organization_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_variant_id_fkey";
+            columns: ["organization_id", "variant_id"];
+            isOneToOne: false;
+            referencedRelation: "epi_variants";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_reverses_id_fkey";
+            columns: ["reverses_id"];
+            isOneToOne: true;
+            referencedRelation: "stock_movements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       training_types: {
         Row: {
           archived_at: string | null;
@@ -566,9 +709,60 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      v_stock_balance: {
+        Row: {
+          avg_cost: number | null;
+          balance: number | null;
+          below_min: boolean | null;
+          last_entry_on: string | null;
+          location_id: string | null;
+          min_stock: number | null;
+          organization_id: string | null;
+          variant_id: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
+      adjust_stock: {
+        Args: {
+          p_org: string;
+          p_location: string;
+          p_variant: string;
+          p_delta: number;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      apply_inventory: {
+        Args: {
+          p_org: string;
+          p_location: string;
+          p_counts: Json;
+          p_reason: string;
+        };
+        Returns: Json;
+      };
+      assert_active_location: {
+        Args: {
+          p_org: string;
+          p_location: string;
+        };
+        Returns: undefined;
+      };
+      assert_active_variant: {
+        Args: {
+          p_org: string;
+          p_variant: string;
+        };
+        Returns: undefined;
+      };
+      assert_can_operate_stock: {
+        Args: {
+          p_org: string;
+        };
+        Returns: undefined;
+      };
       create_epi: {
         Args: {
           p_org: string;
@@ -606,6 +800,16 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      discard_stock: {
+        Args: {
+          p_org: string;
+          p_location: string;
+          p_variant: string;
+          p_quantity: number;
+          p_reason: string;
+        };
+        Returns: string;
+      };
       has_org_role: {
         Args: {
           p_org: string;
@@ -631,6 +835,35 @@ export type Database = {
           created_at: string;
         }[];
       };
+      lock_stock_balance: {
+        Args: {
+          p_location: string;
+          p_variant: string;
+        };
+        Returns: number;
+      };
+      register_stock_entry: {
+        Args: {
+          p_org: string;
+          p_location: string;
+          p_items: Json;
+          p_supplier?: string;
+          p_document_ref?: string;
+          p_occurred_on?: string;
+        };
+        Returns: string;
+      };
+      reverse_stock_movement: {
+        Args: {
+          p_movement: string;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      sao_paulo_today: {
+        Args: never;
+        Returns: string;
+      };
       seed_training_types: {
         Args: {
           p_org: string;
@@ -641,6 +874,7 @@ export type Database = {
     Enums: {
       epi_category: "cabeca" | "olhos_face" | "auditiva" | "respiratoria" | "tronco" | "membros_superiores" | "membros_inferiores" | "corpo_inteiro" | "quedas" | "outro";
       org_role: "owner" | "admin" | "safety" | "storekeeper" | "viewer";
+      stock_movement_type: "entrada" | "saida_entrega" | "devolucao" | "descarte" | "ajuste_positivo" | "ajuste_negativo" | "transferencia_entrada" | "transferencia_saida" | "estorno";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -753,6 +987,7 @@ export const Constants = {
     Enums: {
       epi_category: ["cabeca", "olhos_face", "auditiva", "respiratoria", "tronco", "membros_superiores", "membros_inferiores", "corpo_inteiro", "quedas", "outro"],
       org_role: ["owner", "admin", "safety", "storekeeper", "viewer"],
+      stock_movement_type: ["entrada", "saida_entrega", "devolucao", "descarte", "ajuste_positivo", "ajuste_negativo", "transferencia_entrada", "transferencia_saida", "estorno"],
     },
   },
 } as const;

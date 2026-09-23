@@ -52,7 +52,11 @@ export function DialogForm({
   successMessage,
   action,
   redirectTo,
+  defaultOpen = false,
+  onOpenChange,
 }: {
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   trigger: React.ReactNode;
   title: string;
   description?: string;
@@ -65,7 +69,11 @@ export function DialogForm({
   redirectTo?: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState(defaultOpen);
+  const setOpen = (v: boolean) => {
+    setOpenState(v);
+    onOpenChange?.(v);
+  };
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});

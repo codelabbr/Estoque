@@ -11,6 +11,17 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
     "Não é possível remover ou rebaixar o último proprietário da organização.",
   permissao_negada: "Você não tem permissão para fazer isso.",
   nao_autenticado: "Sua sessão expirou. Faça login novamente.",
+  saldo_insuficiente: "Saldo insuficiente em estoque para essa quantidade.",
+  motivo_obrigatorio: "Informe o motivo (pelo menos 3 caracteres).",
+  quantidade_invalida: "Informe uma quantidade válida.",
+  local_invalido: "Local de estoque inválido ou arquivado.",
+  item_invalido: "EPI ou tamanho inválido ou arquivado.",
+  entrada_sem_itens: "Adicione pelo menos um item.",
+  data_futura: "A data não pode ser no futuro.",
+  movimento_ja_estornado: "Este movimento já foi estornado.",
+  movimento_nao_estornavel:
+    "Este tipo de movimento não pode ser estornado aqui. Saídas e devoluções são desfeitas pela entrega.",
+  movimento_inexistente: "Movimento não encontrado.",
 };
 
 /** Mensagens para violações de constraints específicas (nome da constraint → texto). */
