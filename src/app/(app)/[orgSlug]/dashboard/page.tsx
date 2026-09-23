@@ -1,90 +1,80 @@
 import type { Metadata } from "next";
-import {
-  Bell,
-  Boxes,
-  GraduationCap,
-  HardHat,
-  LayoutDashboard,
-  type LucideIcon,
-} from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { staggerStyle } from "@/lib/motion";
+import { notFound } from "next/navigation";
+import { getDashboardData } from "@/features/dashboard/queries";
+import { QuickComposer } from "@/features/dashboard/components/QuickComposer";
+import { StatStrip } from "@/features/dashboard/components/StatStrip";
+import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
+import { SetupChecklist } from "@/features/dashboard/components/SetupChecklist";
+import { AlertRulesCard } from "@/features/dashboard/components/AlertRulesCard";
+import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Dashboard — Almox SST" };
 
-const UPCOMING: { icon: LucideIcon; title: string; description: string }[] = [
-  {
-    icon: HardHat,
-    title: "Entregas de EPI",
-    description: "Registro no balcão com assinatura do funcionário.",
-  },
-  {
-    icon: Boxes,
-    title: "Estoque",
-    description: "Entradas, saldo por item e estoque mínimo.",
-  },
-  {
-    icon: GraduationCap,
-    title: "Treinamentos",
-    description: "Validade das NRs e certificados por funcionário.",
-  },
-  {
-    icon: Bell,
-    title: "Alertas",
-    description: "CA vencendo, reposição e treinamentos a vencer.",
-  },
-];
+function displayName(email: string) {
+  const local = email.split("@")[0] ?? "";
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+function greeting() {
+  const hour = Number(
+    new Intl.DateTimeFormat("pt-BR", {
+      hour: "numeric",
+      hourCycle: "h23",
+      timeZone: "America/Sao_Paulo",
+    }).format(new Date()),
+  );
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
 
 export default async function DashboardPage({
   params,
 }: {
   params: Promise<{ orgSlug: string }>;
 }) {
-  await params;
+  const { orgSlug } = await params;
+  const data = await getDashboardData(orgSlug);
+  if (!data) notFound();
+
+  const { user, organization, memberCount, activity } = data;
+  const name = displayName(user.email);
+  const initials = user.email.slice(0, 2).toUpperCase();
 
   return (
-    <>
-      <PageHeader
-        title="Dashboard"
-        description="Visão geral de EPIs, estoque e treinamentos."
-      />
-      <EmptyState
-        icon={LayoutDashboard}
-        title="Seu painel está sendo preparado"
-        description="Assim que os módulos abaixo forem liberados, você verá aqui a conformidade da equipe, o estoque crítico e os próximos vencimentos."
-      />
-      <section aria-labelledby="upcoming-title" className="space-y-3">
-        <h2
-          id="upcoming-title"
-          className="text-muted-foreground animate-fade-up stagger text-sm font-medium"
-          style={staggerStyle(2)}
-        >
-          Próximos módulos
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {UPCOMING.map(({ icon: Icon, title, description }, i) => (
-            <li
-              key={title}
-              className="bg-card animate-fade-up stagger group rounded-xl border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-              style={staggerStyle(3 + i)}
-            >
-              <div className="flex items-center justify-between">
-                <span className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110">
-                  <Icon className="size-[18px]" aria-hidden="true" />
-                </span>
-                <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[11px] font-medium">
-                  Em breve
-                </span>
-              </div>
-              <p className="mt-3 text-sm font-medium">{title}</p>
-              <p className="text-muted-foreground mt-0.5 text-sm">
-                {description}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </>
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-8">
+      <div className="animate-fade-up overflow-hidden rounded-2xl border">
+        <header className="bg-background/80 sticky top-14 z-10 border-b px-4 py-3 backdrop-blur-xl sm:px-5">
+          <h1 className="text-xl font-extrabold tracking-tight">
+            {greeting()}, {name}
+          </h1>
+          <p className="text-muted-foreground text-[13px]">
+            {organization.name} · desde {formatDate(organization.created_at)}
+          </p>
+        </header>
+        <QuickComposer initials={initials} />
+        <StatStrip memberCount={memberCount} />
+        <ActivityFeed entries={activity} userName={name} initials={initials} />
+      </div>
+
+      <aside
+        className="animate-fade-up stagger flex flex-col gap-4 lg:sticky lg:top-20"
+        style={{ "--i": 2 } as React.CSSProperties}
+        aria-label="Resumo da organização"
+      >
+        <SetupChecklist memberCount={memberCount} />
+        <AlertRulesCard
+          days={{
+            ca: organization.alert_days_ca,
+            epi: organization.alert_days_epi,
+            training: organization.alert_days_training,
+          }}
+        />
+        <p className="text-muted-foreground px-4 text-[13px] leading-relaxed">
+          Almox SST · Dados tratados conforme a LGPD · ©{" "}
+          {new Date().getFullYear()}
+        </p>
+      </aside>
+    </div>
   );
 }

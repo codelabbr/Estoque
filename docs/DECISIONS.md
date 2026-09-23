@@ -28,3 +28,9 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 **Contexto:** `create-next-app@latest` instala Next 16 por padrão (major mais nova que a pedida em `CLAUDE.md`).
 **Decisão:** usar `create-next-app@15` para fixar Next 15 (15.5.25), conforme a stack definida.
 **Consequências:** ao fazer upgrade para Next 16 no futuro, tratar como decisão própria (breaking changes de App Router), não como atualização de rotina.
+
+## 2026-09-23 — Visual inspirado no X (Twitter)
+
+**Contexto:** a skill `ui-design-system` define primária azul petróleo. O usuário pediu o dashboard "estilo X".
+**Decisão:** tokens de cor passam a seguir o X: fundo preto puro no tema escuro, cinzas neutros, bordas finas e primária azul `#1d9bf0` (`oklch(0.66 0.16 243)`). Navegação com itens arredondados e ativo em negrito; dashboard em coluna central (feed) + coluna lateral de cards. Cores de status continuam as mesmas (verde/âmbar/vermelho/cinza-azulado), sempre com ícone + texto.
+**Consequências:** a skill `ui-design-system` ainda cita o azul petróleo; ao criar telas novas, usar os tokens atuais de `globals.css` (fonte da verdade) e o padrão visual do dashboard.
