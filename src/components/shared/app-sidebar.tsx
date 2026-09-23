@@ -50,7 +50,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       },
       { title: "Entregas", icon: HardHat, href: (s) => `/${s}/entregas` },
       { title: "Estoque", icon: Boxes, href: (s) => `/${s}/estoque` },
-      { title: "Alertas", icon: Bell, badge: 0 },
+      { title: "Alertas", icon: Bell, href: (s) => `/${s}/alertas` },
     ],
   },
   {
@@ -73,7 +73,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "Gestão",
     items: [
-      { title: "Relatórios", icon: FileBarChart },
+      {
+        title: "Relatórios",
+        icon: FileBarChart,
+        href: (s) => `/${s}/relatorios`,
+      },
       {
         title: "Configurações",
         icon: Settings,
@@ -86,9 +90,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
 export function AppSidebar({
   orgSlug,
   organizations,
+  alertCount = 0,
 }: {
   orgSlug: string;
   organizations: MyOrganization[];
+  alertCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -142,8 +148,10 @@ export function AppSidebar({
                           </span>
                         </SidebarMenuButton>
                       )}
-                      {typeof item.badge === "number" && item.badge > 0 && (
-                        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                      {item.title === "Alertas" && alertCount > 0 && (
+                        <SidebarMenuBadge className="bg-primary text-primary-foreground rounded-full px-1.5 text-[11px] font-bold">
+                          {alertCount > 99 ? "99+" : alertCount}
+                        </SidebarMenuBadge>
                       )}
                     </SidebarMenuItem>
                   );

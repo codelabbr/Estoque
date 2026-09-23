@@ -13,6 +13,41 @@ export type Database = {
   };
   public: {
     Tables: {
+      alert_states: {
+        Row: {
+          alert_key: string;
+          organization_id: string;
+          snoozed_until: string | null;
+          status: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          alert_key: string;
+          organization_id: string;
+          snoozed_until?: string | null;
+          status: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          alert_key?: string;
+          organization_id?: string;
+          snoozed_until?: string | null;
+          status?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alert_states_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -632,6 +667,44 @@ export type Database = {
           },
         ];
       };
+      notification_log: {
+        Row: {
+          id: number;
+          kind: string;
+          organization_id: string;
+          payload_hash: string;
+          sent_at: string;
+          sent_on: string;
+          user_id: string;
+        };
+        Insert: {
+          id?: never;
+          kind: string;
+          organization_id: string;
+          payload_hash: string;
+          sent_at?: string;
+          sent_on?: string;
+          user_id: string;
+        };
+        Update: {
+          id?: never;
+          kind?: string;
+          organization_id?: string;
+          payload_hash?: string;
+          sent_at?: string;
+          sent_on?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organization_members: {
         Row: {
           created_at: string;
@@ -1100,6 +1173,22 @@ export type Database = {
       };
     };
     Views: {
+      v_alerts: {
+        Row: {
+          alert_key: string | null;
+          delivery_id: string | null;
+          due_date: string | null;
+          employee_id: string | null;
+          epi_id: string | null;
+          kind: string | null;
+          organization_id: string | null;
+          severity: string | null;
+          title: string | null;
+          training_type_id: string | null;
+          variant_id: string | null;
+        };
+        Relationships: [];
+      };
       v_employee_compliance: {
         Row: {
           employee_id: string | null;
@@ -1273,6 +1362,16 @@ export type Database = {
         };
         Returns: string;
       };
+      digest_recipients: {
+        Args: {
+          p_org: string;
+        };
+        Returns: {
+          user_id: string;
+          email: string;
+          role: Database["public"]["Enums"]["org_role"];
+        }[];
+      };
       discard_stock: {
         Args: {
           p_org: string;
@@ -1402,6 +1501,13 @@ export type Database = {
       seed_training_types: {
         Args: {
           p_org: string;
+        };
+        Returns: undefined;
+      };
+      set_my_daily_digest: {
+        Args: {
+          p_org: string;
+          p_enabled: boolean;
         };
         Returns: undefined;
       };

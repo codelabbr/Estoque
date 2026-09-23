@@ -7,7 +7,8 @@ const PUBLIC_PATHS = ["/login", "/cadastro", "/recuperar-senha", "/assinar"];
 function isPublicPath(pathname: string) {
   return (
     PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
-    pathname.startsWith("/auth/")
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/api/cron/")
   );
 }
 

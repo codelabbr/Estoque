@@ -1,17 +1,56 @@
-import { Check } from "lucide-react";
+import Link from "next/link";
+import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Step = { label: string; done: boolean; soon?: boolean };
+type Step = { label: string; done: boolean; href: string };
 
-export function SetupChecklist({ memberCount }: { memberCount: number }) {
+export function SetupChecklist({
+  orgSlug,
+  setup,
+}: {
+  orgSlug: string;
+  setup: {
+    epis: boolean;
+    employees: boolean;
+    stockEntry: boolean;
+    delivery: boolean;
+    team: boolean;
+  };
+}) {
   const steps: Step[] = [
-    { label: "Criar a organização", done: true },
-    { label: "Convidar a equipe", done: memberCount > 1, soon: true },
-    { label: "Cadastrar funcionários", done: false, soon: true },
-    { label: "Cadastrar EPIs e estoque", done: false, soon: true },
-    { label: "Registrar a primeira entrega", done: false, soon: true },
+    {
+      label: "Criar a organização",
+      done: true,
+      href: `/${orgSlug}/configuracoes`,
+    },
+    {
+      label: "Cadastrar EPIs",
+      done: setup.epis,
+      href: `/${orgSlug}/epis/novo`,
+    },
+    {
+      label: "Cadastrar funcionários",
+      done: setup.employees,
+      href: `/${orgSlug}/funcionarios/importar`,
+    },
+    {
+      label: "Registrar entrada de estoque",
+      done: setup.stockEntry,
+      href: `/${orgSlug}/estoque/entrada`,
+    },
+    {
+      label: "Registrar a primeira entrega",
+      done: setup.delivery,
+      href: `/${orgSlug}/entregas/nova`,
+    },
+    {
+      label: "Convidar a equipe",
+      done: setup.team,
+      href: `/${orgSlug}/configuracoes?aba=equipe`,
+    },
   ];
   const doneCount = steps.filter((s) => s.done).length;
+  if (doneCount === steps.length) return null;
   const percent = Math.round((doneCount / steps.length) * 100);
 
   return (
@@ -47,40 +86,46 @@ export function SetupChecklist({ memberCount }: { memberCount: number }) {
       </div>
       <ol>
         {steps.map((step) => (
-          <li
-            key={step.label}
-            className="flex items-center gap-3 px-4 py-2.5 text-[15px]"
-          >
-            <span
+          <li key={step.label}>
+            <Link
+              href={step.href}
               className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-full border-2",
-                step.done
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border",
+                "hover:bg-foreground/[0.03] flex items-center gap-3 px-4 py-2.5 text-[15px] transition-colors",
+                step.done && "pointer-events-none",
               )}
+              aria-disabled={step.done}
             >
-              {step.done && (
-                <Check
-                  className="size-3.5"
-                  strokeWidth={3}
-                  aria-hidden="true"
-                />
-              )}
-            </span>
-            <span
-              className={cn(
-                "flex-1",
-                step.done && "text-muted-foreground line-through",
-              )}
-            >
-              {step.label}
-              <span className="sr-only">
-                {step.done ? " (concluído)" : " (pendente)"}
+              <span
+                className={cn(
+                  "flex size-6 shrink-0 items-center justify-center rounded-full border-2",
+                  step.done
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border",
+                )}
+              >
+                {step.done && (
+                  <Check
+                    className="size-3.5"
+                    strokeWidth={3}
+                    aria-hidden="true"
+                  />
+                )}
               </span>
-            </span>
-            {!step.done && step.soon && (
-              <span className="text-muted-foreground text-xs">Em breve</span>
-            )}
+              <span
+                className={cn(
+                  "flex-1",
+                  step.done && "text-muted-foreground line-through",
+                )}
+              >
+                {step.label}
+                <span className="sr-only">
+                  {step.done ? " (concluído)" : " (pendente)"}
+                </span>
+              </span>
+              {!step.done && (
+                <ChevronRight className="text-muted-foreground size-4" />
+              )}
+            </Link>
           </li>
         ))}
       </ol>

@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/shared/app-sidebar";
 import { AppHeader } from "@/components/shared/app-header";
 import { getOrgContext } from "@/lib/org";
 import { listMyOrganizations } from "@/features/organizations/queries";
+import { countAlerts } from "@/features/alerts/queries";
 
 export default async function OrgLayout({
   children,
@@ -13,11 +14,18 @@ export default async function OrgLayout({
 }) {
   const { orgSlug } = await params;
   const { org, user } = await getOrgContext(orgSlug);
-  const organizations = await listMyOrganizations();
+  const [organizations, alertCount] = await Promise.all([
+    listMyOrganizations(),
+    countAlerts(org.id),
+  ]);
 
   return (
     <SidebarProvider>
-      <AppSidebar orgSlug={orgSlug} organizations={organizations} />
+      <AppSidebar
+        orgSlug={orgSlug}
+        organizations={organizations}
+        alertCount={alertCount}
+      />
       <SidebarInset>
         <AppHeader
           orgName={org.name}

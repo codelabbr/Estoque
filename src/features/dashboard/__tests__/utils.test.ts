@@ -63,3 +63,33 @@ describe("describeActivity", () => {
     expect(entry.actor).toBe("system");
   });
 });
+
+describe("describeActivity (operações)", () => {
+  it("descreve RPCs de entrega e estoque", () => {
+    const e = describeActivity(
+      {
+        ...base,
+        action: "deliver_epis",
+        tableName: "epi_deliveries",
+        actorId: "u1",
+        newData: null,
+      },
+      ctx,
+    );
+    expect(e.text).toBe("registrou uma entrega de EPI");
+  });
+
+  it("descreve cadastro de funcionário com o nome", () => {
+    const e = describeActivity(
+      {
+        ...base,
+        action: "insert",
+        tableName: "employees",
+        actorId: "u1",
+        newData: { full_name: "Ana Souza" },
+      },
+      ctx,
+    );
+    expect(e.text).toBe("cadastrou um funcionário (Ana Souza)");
+  });
+});

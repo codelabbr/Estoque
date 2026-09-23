@@ -64,3 +64,13 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 **Contexto:** a skill `pdf-documentos` sugere registrar a fonte Inter no `@react-pdf/renderer`.
 **Decisão:** usar Helvetica (fonte padrão do PDF, com acentos do português) para não depender de download de fonte no servidor.
 **Consequências:** visual um pouco diferente do app; trocar por Inter é só `Font.register` com os arquivos no repositório.
+
+## 2026-09-23 — Resumo diário via Vercel Cron (em vez de pg_cron + Edge Function)
+
+**Contexto:** a skill `alertas-jobs` previa pg_cron chamando uma Edge Function do Supabase. Isso exige o CLI logado para deploy de functions, segredos no Vault e uma segunda base de código em Deno.
+**Decisão:** `vercel.json` agenda `GET /api/cron/daily-digest` às 10:00 UTC (07:00 em São Paulo). A rota exige `Authorization: Bearer $CRON_SECRET` (a Vercel envia automaticamente), usa o client admin (service role), lê `v_alerts`, envia pelo Resend (`RESEND_API_KEY`, `EMAIL_FROM`) aos membros `owner/admin/safety` com `daily_digest = true` (`digest_recipients`, só service role) e registra em `notification_log` (único por organização/usuário/tipo/dia). Não envia se não houver alertas ou se o conjunto de alertas for igual ao último enviado. Erro em uma organização não interrompe as outras. O template fica em `src/emails/DailyDigest.tsx`, renderizado com `@react-email/render`. O envio passa por `NotificationChannel` (`src/lib/email/send.ts`) para o WhatsApp entrar depois.
+**Consequências:** precisa de `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM` (domínio verificado no Resend) e `CRON_SECRET` na Vercel. Plano Hobby da Vercel permite um cron diário.
+
+## 2026-09-23 — Relatórios: uma definição, dois formatos
+
+**Decisão:** cada relatório (`src/features/reports/definitions.ts`) devolve título, colunas e linhas já formatadas em pt-BR; a rota `/[org]/relatorios/<nome>.<csv|pdf>` gera CSV (`;`, UTF-8 com BOM) ou PDF (`ReportTable`) e grava `document_log` com o código de verificação. Custo de EPI usa o custo médio vigente da variação (skill `estoque-movimentacoes`). O dossiê de fiscalização em ZIP ficou para depois do piloto.

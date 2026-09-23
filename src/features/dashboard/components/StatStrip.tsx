@@ -1,25 +1,56 @@
-type Stat = { label: string; value: string; hint: string };
+import Link from "next/link";
+import { formatNumber } from "@/lib/format";
 
-/** Faixa de indicadores. Valores ainda sem módulo aparecem como "—", nunca como número inventado. */
-export function StatStrip({ memberCount }: { memberCount: number }) {
+type Stat = { label: string; value: string; hint: string; href: string };
+
+export function StatStrip({
+  orgSlug,
+  compliancePct,
+  irregular,
+  pendingSignatures,
+  stockCritical,
+}: {
+  orgSlug: string;
+  compliancePct: number | null;
+  irregular: number;
+  pendingSignatures: number;
+  stockCritical: number;
+}) {
   const stats: Stat[] = [
     {
-      label: "Equipe",
-      value: String(memberCount),
-      hint: memberCount === 1 ? "usuário com acesso" : "usuários com acesso",
+      label: "Conformidade",
+      value: compliancePct === null ? "—" : `${compliancePct}%`,
+      hint: "funcionários em dia",
+      href: `/${orgSlug}/funcionarios`,
     },
-    { label: "Funcionários", value: "—", hint: "após o cadastro" },
-    { label: "Estoque crítico", value: "—", hint: "itens abaixo do mínimo" },
-    { label: "Vencem em 30 dias", value: "—", hint: "CAs e treinamentos" },
+    {
+      label: "Irregulares",
+      value: formatNumber(irregular),
+      hint: "precisam de ação",
+      href: `/${orgSlug}/alertas`,
+    },
+    {
+      label: "Sem assinatura",
+      value: formatNumber(pendingSignatures),
+      hint: "entregas pendentes",
+      href: `/${orgSlug}/entregas?filtro=pendentes`,
+    },
+    {
+      label: "Estoque crítico",
+      value: formatNumber(stockCritical),
+      hint: "abaixo do mínimo",
+      href: `/${orgSlug}/estoque?filtro=abaixo`,
+    },
   ];
 
   return (
     <dl className="grid grid-cols-2 border-b sm:grid-cols-4">
       {stats.map((stat, i) => (
-        <div
+        <Link
           key={stat.label}
+          href={stat.href}
           className={[
-            "px-4 py-4 sm:px-5",
+            "hover:bg-foreground/[0.03] px-4 py-4 transition-colors sm:px-5",
             i % 2 === 1 ? "border-l" : "",
             i >= 2 ? "border-t sm:border-t-0" : "",
             i === 2 ? "sm:border-l" : "",
@@ -30,7 +61,7 @@ export function StatStrip({ memberCount }: { memberCount: number }) {
             {stat.value}
           </dd>
           <dd className="text-muted-foreground text-xs">{stat.hint}</dd>
-        </div>
+        </Link>
       ))}
     </dl>
   );
