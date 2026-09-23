@@ -40,9 +40,9 @@ export default async function OrgLayout({
           orgSlug={orgSlug}
           userEmail={user.email ?? ""}
         />
-        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

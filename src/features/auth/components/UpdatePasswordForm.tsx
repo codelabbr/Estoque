@@ -4,21 +4,16 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldError,
 } from "@/components/ui/field";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PasswordInput } from "@/components/shared/password-input";
+import { FormError } from "@/components/shared/form-alert";
 import {
   updatePasswordSchema,
   type UpdatePasswordInput,
@@ -51,47 +46,42 @@ export function UpdatePasswordForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Escolher nova senha</CardTitle>
-        <CardDescription>Defina uma nova senha para sua conta.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <Field data-invalid={!!errors.password}>
-              <FieldLabel htmlFor="password">Nova senha</FieldLabel>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register("password")}
-              />
-              <FieldError errors={[errors.password]} />
-            </Field>
-            <Field data-invalid={!!errors.confirmPassword}>
-              <FieldLabel htmlFor="confirmPassword">
-                Confirmar nova senha
-              </FieldLabel>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register("confirmPassword")}
-              />
-              <FieldError errors={[errors.confirmPassword]} />
-            </Field>
-            {formError && (
-              <p role="alert" className="text-destructive text-sm">
-                {formError}
-              </p>
-            )}
-            <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? "Salvando..." : "Salvar nova senha"}
-            </Button>
-          </FieldGroup>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <FieldGroup className="gap-5">
+        <Field data-invalid={!!errors.password}>
+          <FieldLabel htmlFor="password">Nova senha</FieldLabel>
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            aria-invalid={!!errors.password}
+            {...register("password")}
+          />
+          <FieldError errors={[errors.password]} />
+        </Field>
+        <Field data-invalid={!!errors.confirmPassword}>
+          <FieldLabel htmlFor="confirmPassword">
+            Confirmar nova senha
+          </FieldLabel>
+          <PasswordInput
+            id="confirmPassword"
+            autoComplete="new-password"
+            aria-invalid={!!errors.confirmPassword}
+            {...register("confirmPassword")}
+          />
+          <FieldError errors={[errors.confirmPassword]} />
+        </Field>
+        <FormError message={formError} />
+        <Button type="submit" size="lg" disabled={isPending} className="w-full">
+          {isPending ? (
+            <>
+              <Loader2 className="animate-spin" aria-hidden="true" />
+              Salvando...
+            </>
+          ) : (
+            "Salvar nova senha"
+          )}
+        </Button>
+      </FieldGroup>
+    </form>
   );
 }

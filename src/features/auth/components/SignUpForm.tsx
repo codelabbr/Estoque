@@ -1,31 +1,27 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Field,
+  FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldError,
 } from "@/components/ui/field";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PasswordInput } from "@/components/shared/password-input";
+import { FormError, SuccessNotice } from "@/components/shared/form-alert";
 import { signUpSchema, type SignUpInput } from "@/features/auth/schemas";
 import { signUpWithPassword } from "@/features/auth/actions";
 
 export function SignUpForm() {
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -40,80 +36,70 @@ export function SignUpForm() {
         setFormError(result.error);
         return;
       }
-      setSent(true);
+      setSentTo(data.email);
     });
   };
 
+  if (sentTo) {
+    return (
+      <SuccessNotice title="Confirme seu e-mail">
+        Enviamos um link de confirmação para <strong>{sentTo}</strong>. Clique
+        nele para ativar a conta e criar sua organização.
+      </SuccessNotice>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Criar conta</CardTitle>
-        <CardDescription>
-          Comece a organizar EPIs, estoque e treinamentos da sua empresa.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {sent ? (
-          <p className="text-muted-foreground text-sm">
-            Enviamos um link de confirmação para o seu e-mail. Clique nele para
-            ativar a conta e criar sua organização.
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FieldGroup>
-              <Field data-invalid={!!errors.email}>
-                <FieldLabel htmlFor="email">E-mail</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  {...register("email")}
-                />
-                <FieldError errors={[errors.email]} />
-              </Field>
-              <Field data-invalid={!!errors.password}>
-                <FieldLabel htmlFor="password">Senha</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register("password")}
-                />
-                <FieldError errors={[errors.password]} />
-              </Field>
-              <Field data-invalid={!!errors.confirmPassword}>
-                <FieldLabel htmlFor="confirmPassword">
-                  Confirmar senha
-                </FieldLabel>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register("confirmPassword")}
-                />
-                <FieldError errors={[errors.confirmPassword]} />
-              </Field>
-              {formError && (
-                <p role="alert" className="text-destructive text-sm">
-                  {formError}
-                </p>
-              )}
-              <Button type="submit" disabled={isPending} className="w-full">
-                {isPending ? "Criando conta..." : "Criar conta"}
-              </Button>
-              <p className="text-muted-foreground text-center text-sm">
-                Já tem conta?{" "}
-                <Link
-                  href="/login"
-                  className="text-primary underline-offset-4 hover:underline"
-                >
-                  Entrar
-                </Link>
-              </p>
-            </FieldGroup>
-          </form>
-        )}
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <FieldGroup className="gap-5">
+        <Field data-invalid={!!errors.email}>
+          <FieldLabel htmlFor="email">E-mail de trabalho</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="voce@empresa.com.br"
+            aria-invalid={!!errors.email}
+            {...register("email")}
+          />
+          <FieldError errors={[errors.email]} />
+        </Field>
+        <Field data-invalid={!!errors.password}>
+          <FieldLabel htmlFor="password">Senha</FieldLabel>
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            aria-invalid={!!errors.password}
+            {...register("password")}
+          />
+          {errors.password ? (
+            <FieldError errors={[errors.password]} />
+          ) : (
+            <FieldDescription>Mínimo de 8 caracteres.</FieldDescription>
+          )}
+        </Field>
+        <Field data-invalid={!!errors.confirmPassword}>
+          <FieldLabel htmlFor="confirmPassword">Confirmar senha</FieldLabel>
+          <PasswordInput
+            id="confirmPassword"
+            autoComplete="new-password"
+            aria-invalid={!!errors.confirmPassword}
+            {...register("confirmPassword")}
+          />
+          <FieldError errors={[errors.confirmPassword]} />
+        </Field>
+        <FormError message={formError} />
+        <Button type="submit" size="lg" disabled={isPending} className="w-full">
+          {isPending ? (
+            <>
+              <Loader2 className="animate-spin" aria-hidden="true" />
+              Criando conta...
+            </>
+          ) : (
+            "Criar conta"
+          )}
+        </Button>
+      </FieldGroup>
+    </form>
   );
 }

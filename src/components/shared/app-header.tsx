@@ -39,13 +39,13 @@ export function AppHeader({
   const section = rest[0] ? (SECTION_LABELS[rest[0]] ?? rest[0]) : null;
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger className="-ml-1" />
+    <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur-xl sm:px-6">
+      <SidebarTrigger className="-ml-1.5" aria-label="Alternar menu lateral" />
       <Separator orientation="vertical" className="mr-2 h-4" />
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage className="text-foreground font-medium">
+            <BreadcrumbPage className="text-muted-foreground max-w-[40vw] truncate">
               {orgName}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -53,7 +53,9 @@ export function AppHeader({
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{section}</BreadcrumbPage>
+                <BreadcrumbPage className="font-medium">
+                  {section}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           )}

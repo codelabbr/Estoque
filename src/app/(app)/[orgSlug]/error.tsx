@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function OrgError({
   error,
@@ -16,15 +17,17 @@ export default function OrgError({
   }, [error]);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center">
-      <AlertTriangle className="text-destructive size-8" />
-      <div className="space-y-1">
-        <p className="font-medium">Algo deu errado</p>
-        <p className="text-muted-foreground text-sm">
-          Não foi possível carregar esta página. Tente novamente.
-        </p>
-      </div>
-      <Button onClick={() => reset()}>Tentar novamente</Button>
-    </div>
+    <EmptyState
+      icon={AlertTriangle}
+      title="Algo deu errado"
+      description="Não foi possível carregar esta página. Tente novamente."
+      className="[&_svg]:text-destructive"
+      action={
+        <Button onClick={() => reset()}>
+          <RotateCcw aria-hidden="true" />
+          Tentar novamente
+        </Button>
+      }
+    />
   );
 }

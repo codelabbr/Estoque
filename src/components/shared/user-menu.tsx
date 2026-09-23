@@ -21,9 +21,16 @@ export function UserMenu({ email }: { email: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Avatar className="size-8">
-            <AvatarFallback>{initialsFromEmail(email)}</AvatarFallback>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          aria-label="Menu da conta"
+        >
+          <Avatar className="ring-border size-8 ring-1">
+            <AvatarFallback className="from-primary/20 to-primary/5 text-primary bg-linear-to-br text-xs font-semibold">
+              {initialsFromEmail(email)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
