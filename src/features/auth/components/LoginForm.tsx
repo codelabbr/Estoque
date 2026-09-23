@@ -29,7 +29,7 @@ import {
   signInWithMagicLink,
 } from "@/features/auth/actions";
 
-export function LoginForm() {
+export function LoginForm({ next = "/" }: { next?: string }) {
   return (
     <Tabs defaultValue="senha" className="gap-6">
       <TabsList className="w-full">
@@ -43,16 +43,16 @@ export function LoginForm() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="senha">
-        <PasswordLoginForm />
+        <PasswordLoginForm next={next} />
       </TabsContent>
       <TabsContent value="magic-link">
-        <MagicLinkForm />
+        <MagicLinkForm next={next} />
       </TabsContent>
     </Tabs>
   );
 }
 
-function PasswordLoginForm() {
+function PasswordLoginForm({ next }: { next: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -70,7 +70,7 @@ function PasswordLoginForm() {
         setFormError(result.error);
         return;
       }
-      router.replace("/");
+      router.replace(next);
       router.refresh();
     });
   };
@@ -127,7 +127,7 @@ function PasswordLoginForm() {
   );
 }
 
-function MagicLinkForm() {
+function MagicLinkForm({ next }: { next: string }) {
   const [isPending, startTransition] = useTransition();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const {
@@ -138,7 +138,7 @@ function MagicLinkForm() {
 
   const onSubmit = (data: MagicLinkInput) => {
     startTransition(async () => {
-      const result = await signInWithMagicLink(data);
+      const result = await signInWithMagicLink(data, next);
       if (!result.ok) {
         toast.error(result.error);
         return;

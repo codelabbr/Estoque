@@ -2,10 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell } from "@/components/shared/auth-shell";
 import { LoginForm } from "@/features/auth/components/LoginForm";
+import { safeNextPath } from "@/lib/url";
 
 export const metadata: Metadata = { title: "Entrar — Almox SST" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+  const nextPath = safeNextPath(typeof next === "string" ? next : null);
+
   return (
     <AuthShell
       title="Bem-vindo de volta"
@@ -22,7 +30,7 @@ export default function LoginPage() {
         </>
       }
     >
-      <LoginForm />
+      <LoginForm next={nextPath} />
     </AuthShell>
   );
 }
