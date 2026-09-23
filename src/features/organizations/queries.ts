@@ -39,3 +39,12 @@ export async function getOrganizationBySlug(slug: string) {
   if (error) return null;
   return data;
 }
+
+export async function listOrgMembers(orgId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_org_members", {
+    p_org: orgId,
+  });
+  if (error) throw error;
+  return data;
+}

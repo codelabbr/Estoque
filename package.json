@@ -7,16 +7,16 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:db": "supabase test db",
+    "test:db": "vitest run --config vitest.db.config.ts",
     "supabase": "supabase",
     "db:migrate": "supabase migration up",
-    "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "db:types": "node --experimental-strip-types --no-warnings scripts/gen-db-types.mts",
     "db:reset": "supabase db reset",
     "prepare": "husky"
   },
@@ -42,6 +42,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",

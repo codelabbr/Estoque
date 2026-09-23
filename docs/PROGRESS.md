@@ -1,14 +1,14 @@
 # Progresso
 
-| Fase                               | Status          | Resumo | Pendências |
-| ---------------------------------- | --------------- | ------ | ---------- |
-| 0 — Fundação                       | ⏳ não iniciada |        |            |
-| 1 — Cadastros                      | ⏳              |        |            |
-| 2 — Estoque                        | ⏳              |        |            |
-| 3 — Entregas e assinatura          | ⏳              |        |            |
-| 4 — Treinamentos                   | ⏳              |        |            |
-| 5 — Alertas, dashboard, relatórios | ⏳              |        |            |
-| 6 — Polimento e piloto             | ⏳              |        |            |
+| Fase                               | Status           | Resumo                                                                                                                                                                                   | Pendências                                   |
+| ---------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| 0 — Fundação                       | ✅ concluída     | Auth, multiempresa, layout, dashboard estilo X                                                                                                                                           | Convite de membros (Fase 6)                  |
+| 1 — Cadastros                      | ✅ código pronto | Unidades, setores, cargos + matriz (EPIs/treinamentos), funcionários (CPF, importação CSV, desligar/arquivar), catálogo de EPIs com CA e tamanhos, configurações da organização e equipe | Aplicar migration `01_cadastros` no Supabase |
+| 2 — Estoque                        | ⏳               |                                                                                                                                                                                          |                                              |
+| 3 — Entregas e assinatura          | ⏳               |                                                                                                                                                                                          |                                              |
+| 4 — Treinamentos                   | ⏳               |                                                                                                                                                                                          |                                              |
+| 5 — Alertas, dashboard, relatórios | ⏳               |                                                                                                                                                                                          |                                              |
+| 6 — Polimento e piloto             | ⏳               |                                                                                                                                                                                          |                                              |
 
 ## Notas
 

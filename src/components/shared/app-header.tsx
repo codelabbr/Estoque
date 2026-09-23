@@ -18,6 +18,7 @@ const SECTION_LABELS: Record<string, string> = {
   entregas: "Entregas",
   funcionarios: "Funcionários",
   epis: "EPIs",
+  cargos: "Cargos",
   estoque: "Estoque",
   treinamentos: "Treinamentos",
   alertas: "Alertas",

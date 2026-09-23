@@ -28,3 +28,19 @@ export function formatCpf(digitsOnly: string): string {
   const cpf = digitsOnly.replace(/\D/g, "").padEnd(11, "_");
   return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9, 11)}`;
 }
+
+/** CPF parcialmente mascarado para listas e páginas públicas (LGPD): ***.456.789-** */
+export function maskCpfPartial(digitsOnly: string): string {
+  const cpf = digitsOnly.replace(/\D/g, "");
+  if (cpf.length !== 11) return "***.***.***-**";
+  return `***.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-**`;
+}
+
+export function formatPhone(digitsOnly: string): string {
+  const d = digitsOnly.replace(/\D/g, "");
+  if (d.length === 11)
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10)
+    return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return digitsOnly;
+}

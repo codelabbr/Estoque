@@ -13,12 +13,32 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
   nao_autenticado: "Sua sessão expirou. Faça login novamente.",
 };
 
+/** Mensagens para violações de constraints específicas (nome da constraint → texto). */
+const CONSTRAINT_MESSAGES: Record<string, string> = {
+  employees_organization_id_cpf_key: "Já existe um funcionário com este CPF.",
+  employees_registration_key: "Já existe um funcionário com esta matrícula.",
+  job_roles_organization_id_name_key: "Já existe um cargo com este nome.",
+  units_organization_id_name_key: "Já existe uma unidade com este nome.",
+  training_types_organization_id_name_key:
+    "Já existe um tipo de treinamento com este nome.",
+  epi_variants_epi_id_size_label_key: "Este EPI já tem esse tamanho.",
+  job_role_epi_requirements_pkey: "Este EPI já está na lista do cargo.",
+  job_role_training_requirements_pkey:
+    "Este treinamento já está na lista do cargo.",
+  organizations_slug_key: "Este identificador já está em uso. Escolha outro.",
+};
+
 /** Mapeia erros do Postgres/Supabase para mensagens em pt-BR, claras e sem jargão técnico. */
 export function mapDbError(error: DbErrorLike): string {
   const message = error.message ?? "";
 
   for (const [code, friendly] of Object.entries(BUSINESS_ERROR_MESSAGES)) {
     if (message.includes(code)) return friendly;
+  }
+  for (const [constraint, friendly] of Object.entries(CONSTRAINT_MESSAGES)) {
+    if (message.includes(constraint) || error.details?.includes(constraint)) {
+      return friendly;
+    }
   }
 
   switch (error.code) {

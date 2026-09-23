@@ -12,6 +12,7 @@ import {
   Bell,
   FileBarChart,
   Settings,
+  BriefcaseBusiness,
 } from "lucide-react";
 import {
   Sidebar,
@@ -55,8 +56,13 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "Cadastros",
     items: [
-      { title: "Funcionários", icon: Users },
-      { title: "EPIs", icon: ShieldCheck },
+      {
+        title: "Funcionários",
+        icon: Users,
+        href: (s) => `/${s}/funcionarios`,
+      },
+      { title: "EPIs", icon: ShieldCheck, href: (s) => `/${s}/epis` },
+      { title: "Cargos", icon: BriefcaseBusiness, href: (s) => `/${s}/cargos` },
       { title: "Treinamentos", icon: GraduationCap },
     ],
   },
@@ -64,7 +70,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Gestão",
     items: [
       { title: "Relatórios", icon: FileBarChart },
-      { title: "Configurações", icon: Settings },
+      {
+        title: "Configurações",
+        icon: Settings,
+        href: (s) => `/${s}/configuracoes`,
+      },
     ],
   },
 ];
