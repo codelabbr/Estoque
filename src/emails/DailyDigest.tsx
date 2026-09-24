@@ -146,7 +146,7 @@ export function DailyDigest({
                           </table>
                           {s.total > s.items.length && (
                             <p style={{ margin: "6px 0 0", fontSize: 13 }}>
-                              <a href={alertsUrl} style={{ color: "#1d9bf0" }}>
+                              <a href={alertsUrl} style={{ color: "#367c14" }}>
                                 Ver todos ({s.total})
                               </a>
                             </p>
@@ -160,7 +160,7 @@ export function DailyDigest({
                           href={alertsUrl}
                           style={{
                             display: "inline-block",
-                            background: "#1d9bf0",
+                            background: "#367c14",
                             color: "#ffffff",
                             padding: "12px 22px",
                             borderRadius: 999,

@@ -13,9 +13,9 @@ description: Use ao criar ou alterar qualquer tela ou componente do Almox SST. D
 
 ## Base
 
-- shadcn/ui (estilo `new-york`), Tailwind v4, ícones lucide-react, fonte Inter (via `next/font`).
-- Tokens em CSS variables no `globals.css`; tema claro e escuro.
-- Cor primária: azul petróleo (`--primary: oklch(0.45 0.09 230)`). Evite laranja/amarelo como primária para não confundir com alerta.
+- shadcn/ui (`radix-nova`), Tailwind v4, ícones lucide-react, fonte Inter no corpo e Montserrat nos títulos (`h1`/`h2`, `font-heading`), via `next/font`.
+- Tokens em CSS variables no `globals.css` (fonte da verdade); tema claro e escuro. Nunca use cor fixa em componente.
+- Paleta industrial verde (ver `docs/DECISIONS.md`): no escuro, fundo preto esverdeado e primária verde-limão com texto escuro; no claro, primária verde fechado com texto branco (o limão sobre branco não passa em contraste). Evite laranja/amarelo como primária para não confundir com alerta.
 
 ## Cores de status (use sempre o componente `<StatusBadge status=... />`)
 

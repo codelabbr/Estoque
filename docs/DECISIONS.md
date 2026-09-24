@@ -29,7 +29,7 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 **Decisão:** usar `create-next-app@15` para fixar Next 15 (15.5.25), conforme a stack definida.
 **Consequências:** ao fazer upgrade para Next 16 no futuro, tratar como decisão própria (breaking changes de App Router), não como atualização de rotina.
 
-## 2026-09-23 — Visual inspirado no X (Twitter)
+## 2026-09-23 — Visual inspirado no X (Twitter) _(cores substituídas por "Paleta industrial verde")_
 
 **Contexto:** a skill `ui-design-system` define primária azul petróleo. O usuário pediu o dashboard "estilo X".
 **Decisão:** tokens de cor passam a seguir o X: fundo preto puro no tema escuro, cinzas neutros, bordas finas e primária azul `#1d9bf0` (`oklch(0.66 0.16 243)`). Navegação com itens arredondados e ativo em negrito; dashboard em coluna central (feed) + coluna lateral de cards. Cores de status continuam as mesmas (verde/âmbar/vermelho/cinza-azulado), sempre com ícone + texto.
@@ -84,3 +84,9 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 ## 2026-09-24 — Convites por link de uso único
 
 **Decisão:** `organization_invites` guarda só o hash do token (7 dias, reenviar revoga o anterior). O convite é aceito em `/convite/[token]` pelo usuário logado **com o mesmo e-mail**; se o Resend estiver configurado o link também vai por e-mail. Admin não convida owner.
+
+## 2026-09-24 — Paleta industrial verde (referência: site da APO)
+
+**Contexto:** o usuário pediu nova aparência usando como base o site acopecasoliveira.com.br: fundo quase preto esverdeado, verde-limão de destaque, títulos brancos em fonte geométrica pesada.
+**Decisão:** tokens de `globals.css` trocados. Escuro: fundo `oklch(0.155 0.012 150)` (#090e0a), cards um tom acima, primária verde-limão `oklch(0.77 0.2 134)` (#7bce33) com texto escuro nos botões. Claro: fundo levemente esverdeado e primária verde fechado `oklch(0.52 0.15 138)` (#367c14) com texto branco — o limão sobre branco não passa em contraste e `text-primary` é usado como cor de texto. Títulos `h1`/`h2` e `font-heading` em Montserrat; corpo continua Inter. Layout, espaçamentos e cores de status (verde/âmbar/vermelho/cinza-azulado) não mudam. Só a paleta foi inspirada; logo, nome e textos da APO não são usados.
+**Consequências:** contraste AA conferido (texto ≥ 17:1, muted ≥ 6,4:1, primária como texto ≥ 4,9:1, texto do botão ≥ 5,2:1). O e-mail diário usa #367c14. Ao criar telas novas, usar só os tokens (nada de cor fixa no componente).

@@ -97,18 +97,18 @@ export function AuthShell({
 
 function BrandPanel() {
   return (
-    <aside className="relative hidden overflow-hidden bg-[oklch(0.3_0.07_232)] p-10 text-white lg:flex lg:flex-col xl:p-14">
+    <aside className="relative hidden overflow-hidden bg-[oklch(0.155_0.012_150)] p-10 text-white lg:flex lg:flex-col xl:p-14">
       <div
         aria-hidden="true"
-        className="absolute inset-0 [background-image:linear-gradient(white_1px,transparent_1px),linear-gradient(90deg,white_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)] [background-size:40px_40px] opacity-[0.07]"
+        className="absolute inset-0 [background-image:linear-gradient(white_1px,transparent_1px),linear-gradient(90deg,white_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)] [background-size:40px_40px] opacity-[0.05]"
       />
       <div
         aria-hidden="true"
-        className="animate-glow absolute -top-40 -right-40 size-[520px] rounded-full bg-[oklch(0.6_0.12_210)] opacity-30 blur-3xl"
+        className="animate-glow absolute -top-40 -right-40 size-[520px] rounded-full bg-[oklch(0.77_0.2_134)] opacity-15 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="animate-glow absolute -bottom-48 -left-24 size-[420px] rounded-full bg-[oklch(0.55_0.1_170)] opacity-20 blur-3xl [animation-direction:alternate-reverse]"
+        className="animate-glow absolute -bottom-48 -left-24 size-[420px] rounded-full bg-[oklch(0.5_0.12_150)] opacity-20 blur-3xl [animation-direction:alternate-reverse]"
       />
 
       <div className="relative flex flex-1 flex-col justify-center gap-12">
