@@ -193,3 +193,18 @@ export async function importEmployees(
     data: { inserted: result.inserted, skipped: result.skipped },
   };
 }
+
+export async function anonymizeEmployee(
+  orgSlug: string,
+  id: string,
+): Promise<ActionResult> {
+  const ctx = await getOrgContext(orgSlug);
+  if (ctx.role !== "owner") return PERMISSION_DENIED;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("anonymize_employee", {
+    p_employee: id,
+  });
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidate(orgSlug, id);
+  return { ok: true, data: undefined };
+}

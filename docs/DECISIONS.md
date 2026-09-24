@@ -74,3 +74,13 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 ## 2026-09-23 — Relatórios: uma definição, dois formatos
 
 **Decisão:** cada relatório (`src/features/reports/definitions.ts`) devolve título, colunas e linhas já formatadas em pt-BR; a rota `/[org]/relatorios/<nome>.<csv|pdf>` gera CSV (`;`, UTF-8 com BOM) ou PDF (`ReportTable`) e grava `document_log` com o código de verificação. Custo de EPI usa o custo médio vigente da variação (skill `estoque-movimentacoes`). O dossiê de fiscalização em ZIP ficou para depois do piloto.
+
+## 2026-09-24 — Anonimização preserva a ficha de entrega
+
+**Contexto:** a skill `lgpd-auditoria` pede anonimização sob ação explícita do owner, mas as entregas guardam snapshot imutável (nome/CPF) coberto pelo hash de integridade, que é a prova legal do fornecimento de EPI.
+**Decisão:** `anonymize_employee` (só owner, só desligado) substitui nome, CPF, matrícula, telefone, e-mail e foto do **cadastro**; os snapshots das entregas/assinaturas continuam intactos durante o prazo de guarda. `export_employee_data` gera o JSON para atender o titular (owner/admin, auditado).
+**Consequências:** a anonimização completa das fichas (após o prazo legal) exige uma rotina separada que invalide os hashes de forma controlada — definir o prazo com a assessoria jurídica antes de implementar.
+
+## 2026-09-24 — Convites por link de uso único
+
+**Decisão:** `organization_invites` guarda só o hash do token (7 dias, reenviar revoga o anterior). O convite é aceito em `/convite/[token]` pelo usuário logado **com o mesmo e-mail**; se o Resend estiver configurado o link também vai por e-mail. Admin não convida owner.

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import {
   Archive,
   ChevronRight,
+  Download,
+  EyeOff,
   FileText,
   GraduationCap,
   HardHat,
@@ -20,7 +22,11 @@ import { DialogForm } from "@/components/shared/dialog-form";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AvatarInitials } from "@/components/shared/avatar-initials";
 import { getOrgContext } from "@/lib/org";
-import { canManageRegistry, canOperateStock } from "@/lib/permissions";
+import {
+  canManageRegistry,
+  canOperateStock,
+  isOrgAdmin,
+} from "@/lib/permissions";
 import {
   describeDue,
   formatDate,
@@ -30,6 +36,7 @@ import {
 import { formatCpf, formatPhone } from "@/lib/validators";
 import { getEmployee } from "@/features/employees/queries";
 import {
+  anonymizeEmployee,
   archiveEmployee,
   reactivateEmployee,
   terminateEmployee,
@@ -467,6 +474,41 @@ export default async function EmployeeDetailPage({
           ]}
         />
       </Panel>
+      {isOrgAdmin(role) && (
+        <Panel className="animate-fade-up">
+          <PanelHeader
+            title="Dados pessoais (LGPD)"
+            description="A empresa é a controladora destes dados. Use para atender pedidos do titular."
+          />
+          <div className="flex flex-wrap gap-2 px-4 py-4 sm:px-5">
+            <Button asChild variant="outline" className="rounded-full">
+              <a href={`/${orgSlug}/funcionarios/${id}/dados`} download>
+                <Download /> Exportar dados (JSON)
+              </a>
+            </Button>
+            {role === "owner" &&
+              employee.terminated_at &&
+              !employee.full_name.startsWith("Titular anonimizado") && (
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      className="text-destructive rounded-full"
+                    >
+                      <EyeOff /> Anonimizar
+                    </Button>
+                  }
+                  title="Anonimizar este funcionário?"
+                  description="Nome, CPF, matrícula, telefone e e-mail do cadastro são substituídos e não podem ser recuperados. As fichas de entrega já emitidas mantêm o registro original enquanto durar a obrigação legal de guarda. Confirme o prazo de retenção com a assessoria jurídica antes de continuar."
+                  confirmLabel="Anonimizar definitivamente"
+                  destructive
+                  successMessage="Cadastro anonimizado"
+                  action={anonymizeEmployee.bind(null, orgSlug, id)}
+                />
+              )}
+          </div>
+        </Panel>
+      )}
     </div>
   );
 }

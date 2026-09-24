@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { getOrgContext } from "@/lib/org";
-import { canManageRegistry, canOperateStock } from "@/lib/permissions";
+import {
+  canManageRegistry,
+  canOperateStock,
+  isOrgAdmin,
+} from "@/lib/permissions";
 import { formatDate } from "@/lib/format";
 import { staggerStyle } from "@/lib/motion";
 import { getDashboardData } from "@/features/dashboard/queries";
@@ -91,7 +95,11 @@ export default async function DashboardPage({
         style={staggerStyle(2)}
         aria-label="Resumo da organização"
       >
-        <SetupChecklist orgSlug={orgSlug} setup={data.setup} />
+        <SetupChecklist
+          orgSlug={orgSlug}
+          setup={data.setup}
+          canLoadDemo={isOrgAdmin(role)}
+        />
         <ComplianceCard orgSlug={orgSlug} {...compliance} />
         <AlertRulesCard
           days={{

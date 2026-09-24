@@ -5,7 +5,7 @@ test("página de login exibe o formulário", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Bem-vindo de volta" }),
   ).toBeVisible();
-  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
 });
 
 test("navega do login para o cadastro", async ({ page }) => {

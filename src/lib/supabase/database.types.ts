@@ -705,6 +705,56 @@ export type Database = {
           },
         ];
       };
+      organization_invites: {
+        Row: {
+          accepted_at: string | null;
+          accepted_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
+          organization_id: string;
+          revoked_at: string | null;
+          role: Database["public"]["Enums"]["org_role"];
+          token_hash: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email: string;
+          expires_at: string;
+          id?: string;
+          organization_id: string;
+          revoked_at?: string | null;
+          role: Database["public"]["Enums"]["org_role"];
+          token_hash: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          organization_id?: string;
+          revoked_at?: string | null;
+          role?: Database["public"]["Enums"]["org_role"];
+          token_hash?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "organization_invites_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       organization_members: {
         Row: {
           created_at: string;
@@ -1254,6 +1304,12 @@ export type Database = {
       };
     };
     Functions: {
+      accept_invite: {
+        Args: {
+          p_token: string;
+        };
+        Returns: string;
+      };
       adjust_stock: {
         Args: {
           p_org: string;
@@ -1263,6 +1319,12 @@ export type Database = {
           p_reason: string;
         };
         Returns: string;
+      };
+      anonymize_employee: {
+        Args: {
+          p_employee: string;
+        };
+        Returns: undefined;
       };
       apply_inventory: {
         Args: {
@@ -1305,6 +1367,15 @@ export type Database = {
           p_org: string;
           p_epi: Json;
           p_sizes?: string[];
+        };
+        Returns: string;
+      };
+      create_invite: {
+        Args: {
+          p_org: string;
+          p_email: string;
+          p_role: Database["public"]["Enums"]["org_role"];
+          p_token_hash: string;
         };
         Returns: string;
       };
@@ -1382,6 +1453,36 @@ export type Database = {
         };
         Returns: string;
       };
+      export_employee_data: {
+        Args: {
+          p_employee: string;
+        };
+        Returns: Json;
+      };
+      find_invite: {
+        Args: {
+          p_token: string;
+        };
+        Returns: {
+          accepted_at: string | null;
+          accepted_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          email: string;
+          expires_at: string;
+          id: string;
+          organization_id: string;
+          revoked_at: string | null;
+          role: Database["public"]["Enums"]["org_role"];
+          token_hash: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "organization_invites";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       find_signature_request: {
         Args: {
           p_token: string;
@@ -1404,6 +1505,12 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      get_invite: {
+        Args: {
+          p_token: string;
+        };
+        Returns: Json;
       };
       get_signature_request: {
         Args: {
@@ -1494,9 +1601,21 @@ export type Database = {
         };
         Returns: string;
       };
+      revoke_invite: {
+        Args: {
+          p_invite: string;
+        };
+        Returns: undefined;
+      };
       sao_paulo_today: {
         Args: never;
         Returns: string;
+      };
+      seed_demo_data: {
+        Args: {
+          p_org: string;
+        };
+        Returns: undefined;
       };
       seed_training_types: {
         Args: {

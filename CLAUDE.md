@@ -89,14 +89,14 @@ docs/
 
 ```
 pnpm dev                 # app
-pnpm supabase start      # banco local
-pnpm db:migrate          # supabase migration up
-pnpm db:types            # supabase gen types typescript --local > src/lib/supabase/database.types.ts
-pnpm db:reset            # recria o banco local + seed
+pnpm db:types            # gera src/lib/supabase/database.types.ts a partir das migrations (PGlite, sem Docker)
 pnpm typecheck && pnpm lint && pnpm test
-pnpm test:e2e
-pnpm test:db             # supabase test db (pgTAP)
+pnpm test:db             # RLS/RPC/views em PGlite (supabase/tests/*.test.ts)
+pnpm test:e2e            # Playwright na porta 3457
+pnpm supabase db push    # aplica migrations no Supabase da nuvem (após supabase link)
 ```
+
+Sem Docker: não há `supabase start`/`db:reset`. O app local usa o Supabase da nuvem (ver `docs/DECISIONS.md`).
 
 ## Skills do projeto (`.claude/skills/`)
 

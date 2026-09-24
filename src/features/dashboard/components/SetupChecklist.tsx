@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LoadDemoButton } from "./LoadDemoButton";
 
 type Step = { label: string; done: boolean; href: string };
 
 export function SetupChecklist({
   orgSlug,
   setup,
+  canLoadDemo = false,
 }: {
   orgSlug: string;
+  canLoadDemo?: boolean;
   setup: {
     epis: boolean;
     employees: boolean;
@@ -129,6 +132,7 @@ export function SetupChecklist({
           </li>
         ))}
       </ol>
+      {canLoadDemo && !setup.employees && <LoadDemoButton orgSlug={orgSlug} />}
     </section>
   );
 }

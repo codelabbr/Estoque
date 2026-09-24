@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { AuthShell } from "@/components/shared/auth-shell";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
@@ -22,7 +23,9 @@ export default function LoginPage() {
         </>
       }
     >
-      <LoginForm />
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }

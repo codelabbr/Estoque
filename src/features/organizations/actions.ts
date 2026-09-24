@@ -1,11 +1,15 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
+import { getSiteUrl } from "@/lib/url";
+import { emailChannel } from "@/lib/email/send";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { mapDbError } from "@/lib/errors";
 import { getOrgContext } from "@/lib/org";
-import { isOrgAdmin } from "@/lib/permissions";
+import { isOrgAdmin, ROLE_LABELS } from "@/lib/permissions";
 import { invalid, PERMISSION_DENIED, type ActionResult } from "@/lib/actions";
 import { createOrganizationSchema, updateOrganizationSchema } from "./schemas";
 
@@ -120,4 +124,85 @@ export async function removeMember(
   if (error) return { ok: false, error: mapDbError(error) };
   revalidatePath(`/${orgSlug}/configuracoes`);
   return { ok: true, data: undefined };
+}
+
+const inviteSchema = z.object({
+  email: z.email("E-mail inválido").transform((v) => v.toLowerCase().trim()),
+  role: z.enum(["owner", "admin", "safety", "storekeeper", "viewer"], {
+    error: "Selecione o papel",
+  }),
+});
+
+export async function createInvite(
+  orgSlug: string,
+  input: unknown,
+): Promise<ActionResult<{ url: string; emailed: boolean }>> {
+  const ctx = await getOrgContext(orgSlug);
+  if (!isOrgAdmin(ctx.role)) return PERMISSION_DENIED;
+  const parsed = inviteSchema.safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+
+  const token = randomBytes(32).toString("base64url");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_invite", {
+    p_org: ctx.org.id,
+    p_email: parsed.data.email,
+    p_role: parsed.data.role,
+    p_token_hash: createHash("sha256").update(token, "utf8").digest("hex"),
+  });
+  if (error) return { ok: false, error: mapDbError(error) };
+
+  const url = `${getSiteUrl()}/convite/${token}`;
+  const sent = await emailChannel.send(
+    parsed.data.email,
+    `Convite para ${ctx.org.name} no Almox SST`,
+    `<p>Você foi convidado para a equipe de <strong>${escapeHtml(ctx.org.name)}</strong> no Almox SST como <strong>${ROLE_LABELS[parsed.data.role]}</strong>.</p><p><a href="${url}">Aceitar convite</a> (válido por 7 dias). Se ainda não tem conta, crie com este mesmo e-mail.</p>`,
+  );
+  revalidatePath(`/${orgSlug}/configuracoes`);
+  return { ok: true, data: { url, emailed: sent.ok } };
+}
+
+export async function revokeInvite(
+  orgSlug: string,
+  inviteId: string,
+): Promise<ActionResult> {
+  const ctx = await getOrgContext(orgSlug);
+  if (!isOrgAdmin(ctx.role)) return PERMISSION_DENIED;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("revoke_invite", { p_invite: inviteId });
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidatePath(`/${orgSlug}/configuracoes`);
+  return { ok: true, data: undefined };
+}
+
+export async function acceptInvite(
+  token: string,
+): Promise<ActionResult<{ slug: string }>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("accept_invite", {
+    p_token: token,
+  });
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidatePath("/", "layout");
+  return { ok: true, data: { slug: data } };
+}
+
+export async function loadDemoData(orgSlug: string): Promise<ActionResult> {
+  const ctx = await getOrgContext(orgSlug);
+  if (!isOrgAdmin(ctx.role)) return PERMISSION_DENIED;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("seed_demo_data", { p_org: ctx.org.id });
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidatePath(`/${orgSlug}`, "layout");
+  return { ok: true, data: undefined };
+}
+
+function escapeHtml(s: string) {
+  return s.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]!,
+  );
 }

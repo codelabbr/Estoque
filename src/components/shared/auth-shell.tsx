@@ -80,8 +80,14 @@ export function AuthShell({
           </div>
         </div>
         <p className="text-muted-foreground animate-fade-in text-xs">
-          © {new Date().getFullYear()} Almox SST · Dados tratados conforme a
-          LGPD
+          © {new Date().getFullYear()} Almox SST ·{" "}
+          <Link href="/termos" className="hover:underline">
+            Termos
+          </Link>{" "}
+          ·{" "}
+          <Link href="/privacidade" className="hover:underline">
+            Privacidade
+          </Link>
         </p>
       </div>
       <BrandPanel />

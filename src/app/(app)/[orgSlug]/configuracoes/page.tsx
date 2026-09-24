@@ -36,6 +36,9 @@ import {
   removeMember,
 } from "@/features/organizations/actions";
 import { OrganizationSettingsForm } from "@/features/organizations/components/OrganizationSettingsForm";
+import { InviteDialog } from "@/features/organizations/components/InviteDialog";
+import { listPendingInvites } from "@/features/organizations/queries";
+import { revokeInvite } from "@/features/organizations/actions";
 import { listLocations } from "@/features/stock/queries";
 import { archiveLocation, createLocation } from "@/features/stock/actions";
 
@@ -311,7 +314,10 @@ async function TeamTab({
   canEdit: boolean;
   currentUserId: string;
 }) {
-  const members = await listOrgMembers(orgId);
+  const [members, invites] = await Promise.all([
+    listOrgMembers(orgId),
+    listPendingInvites(orgId),
+  ]);
   const roleOptions = (Object.keys(ROLE_LABELS) as OrgRole[]).map((r) => ({
     value: r,
     label: `${ROLE_LABELS[r]} — ${ROLE_DESCRIPTIONS[r]}`,
@@ -322,6 +328,12 @@ async function TeamTab({
       <PanelHeader
         title="Equipe"
         description="Pessoas com acesso a esta organização e o que cada uma pode fazer."
+
+        actions={
+          canEdit && (
+            <InviteDialog orgSlug={orgSlug} roleOptions={roleOptions} />
+          )
+        }
       />
       <ul>
         {members.map((m) => (
@@ -398,6 +410,48 @@ async function TeamTab({
           </li>
         ))}
       </ul>
+      {invites.length > 0 && (
+        <>
+          <p className="text-muted-foreground border-t px-4 pt-3 text-xs font-bold tracking-wide uppercase sm:px-5">
+            Convites pendentes
+          </p>
+          <ul>
+            {invites.map((inv) => (
+              <li
+                key={inv.id}
+                className="flex items-center gap-3 px-4 py-3 sm:px-5"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">
+                    {inv.email}
+                  </span>
+                  <span className="text-muted-foreground block text-sm">
+                    {ROLE_LABELS[inv.role]} · vence {formatDate(inv.expires_at)}
+                  </span>
+                </span>
+                {canEdit && (
+                  <ConfirmDialog
+                    trigger={
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-full"
+                      >
+                        Cancelar
+                      </Button>
+                    }
+                    title="Cancelar convite?"
+                    description={`O link enviado para ${inv.email} deixa de funcionar.`}
+                    confirmLabel="Cancelar convite"
+                    successMessage="Convite cancelado"
+                    action={revokeInvite.bind(null, orgSlug, inv.id)}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </Panel>
   );
 }

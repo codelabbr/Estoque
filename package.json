@@ -15,10 +15,9 @@
     "test:e2e": "playwright test",
     "test:db": "vitest run --config vitest.db.config.ts",
     "supabase": "supabase",
-    "db:migrate": "supabase migration up",
     "db:types": "node --experimental-strip-types --no-warnings scripts/gen-db-types.mts",
-    "db:reset": "supabase db reset",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

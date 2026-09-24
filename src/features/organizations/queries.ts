@@ -48,3 +48,17 @@ export async function listOrgMembers(orgId: string) {
   if (error) throw error;
   return data;
 }
+
+export async function listPendingInvites(orgId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("organization_invites")
+    .select("id, email, role, expires_at, created_at")
+    .eq("organization_id", orgId)
+    .is("accepted_at", null)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+  if (error) return [];
+  return data;
+}

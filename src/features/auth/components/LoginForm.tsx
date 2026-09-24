@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -52,8 +52,16 @@ export function LoginForm() {
   );
 }
 
+/** Só aceita caminhos internos (evita redirecionamento aberto). */
+function safeNext(value: string | null): string {
+  return value && value.startsWith("/") && !value.startsWith("//")
+    ? value
+    : "/";
+}
+
 function PasswordLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const {
@@ -70,7 +78,7 @@ function PasswordLoginForm() {
         setFormError(result.error);
         return;
       }
-      router.replace("/");
+      router.replace(safeNext(searchParams.get("next")));
       router.refresh();
     });
   };

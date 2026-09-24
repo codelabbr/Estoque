@@ -48,6 +48,15 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
   assinatura_vazia: "Desenhe sua assinatura antes de confirmar.",
   item_ja_devolvido: "Este item já foi devolvido.",
   turma_sem_participantes: "Selecione pelo menos um participante.",
+  ja_e_membro: "Esta pessoa já faz parte da equipe.",
+  convite_invalido: "Convite inválido ou cancelado. Peça um novo convite.",
+  convite_usado: "Este convite já foi aceito.",
+  convite_expirado: "Este convite expirou. Peça um novo.",
+  convite_outro_email:
+    "Este convite foi enviado para outro e-mail. Entre com a conta do e-mail convidado.",
+  anonimizar_ativo: "Só é possível anonimizar funcionários desligados.",
+  organizacao_com_dados:
+    "Os dados de exemplo só podem ser carregados em uma organização sem funcionários.",
 };
 
 /** Mensagens para violações de constraints específicas (nome da constraint → texto). */
