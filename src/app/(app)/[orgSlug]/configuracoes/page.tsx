@@ -43,6 +43,9 @@ import { listLocations } from "@/features/stock/queries";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_ALERT_SETTINGS } from "@/features/alerts/digest";
 import { AlertSettingsPanel } from "@/features/alerts/components/AlertSettingsPanel";
+import { listAuditLog } from "@/features/audit/queries";
+import { AUDIT_FILTERS } from "@/features/audit/utils";
+import { AuditTrail } from "@/features/audit/components/AuditTrail";
 import { archiveLocation, createLocation } from "@/features/stock/actions";
 
 export const metadata: Metadata = { title: "Configurações — Almox SST" };
@@ -67,19 +70,23 @@ export default async function SettingsPage({
   searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
-  searchParams: Promise<{ aba?: string }>;
+  searchParams: Promise<{ aba?: string; filtro?: string; pagina?: string }>;
 }) {
   const { orgSlug } = await params;
-  const { aba } = await searchParams;
-  const tab = TABS.some((t) => t.value === aba) ? aba! : "organizacao";
+  const sp = await searchParams;
   const { org, role, user } = await getOrgContext(orgSlug);
+  // Auditoria só para quem pode lê-la (a RLS também restringe a owner/admin).
+  const tabs = isOrgAdmin(role)
+    ? [...TABS, { value: "auditoria", label: "Auditoria" }]
+    : TABS;
+  const tab = tabs.some((t) => t.value === sp.aba) ? sp.aba! : "organizacao";
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <PageHeader title="Configurações" description={org.name} />
       <Panel className="animate-fade-up">
         <FilterTabs
-          items={TABS}
+          items={tabs}
           current={tab}
           hrefFor={(v) =>
             `/${orgSlug}/configuracoes${v === "organizacao" ? "" : `?aba=${v}`}`
@@ -132,7 +139,46 @@ export default async function SettingsPage({
           canEdit={isOrgAdmin(role)}
         />
       )}
+      {tab === "auditoria" && (
+        <AuditTab
+          orgSlug={orgSlug}
+          orgId={org.id}
+          filter={
+            AUDIT_FILTERS.some((f) => f.value === sp.filtro)
+              ? sp.filtro!
+              : "todos"
+          }
+          page={Math.max(1, Number(sp.pagina) || 1)}
+        />
+      )}
     </div>
+  );
+}
+
+async function AuditTab({
+  orgSlug,
+  orgId,
+  filter,
+  page,
+}: {
+  orgSlug: string;
+  orgId: string;
+  filter: string;
+  page: number;
+}) {
+  const [{ rows, hasMore }, members] = await Promise.all([
+    listAuditLog(orgId, filter, page),
+    listOrgMembers(orgId),
+  ]);
+  return (
+    <AuditTrail
+      orgSlug={orgSlug}
+      rows={rows}
+      filter={filter}
+      page={page}
+      hasMore={hasMore}
+      actorEmails={Object.fromEntries(members.map((m) => [m.user_id, m.email]))}
+    />
   );
 }
 

@@ -21,7 +21,8 @@ export type ActivityEntry = {
 
 const RPC_TEXT: Record<string, string> = {
   deliver_epis: "registrou uma entrega de EPI",
-  "deliver_epis:ca_vencido": "entregou EPI com CA vencido (confirmado)",
+  "deliver_epis:ca_vencido": "liberou a entrega de um EPI com CA vencido",
+  seed_demo_data: "carregou os dados de exemplo",
   sign_delivery: "recebeu a assinatura de uma entrega",
   cancel_delivery: "cancelou uma entrega",
   return_epi: "registrou a devolução de um EPI",
@@ -43,6 +44,24 @@ const TABLE_NOUN: Record<string, string> = {
   employee_trainings: "um treinamento",
   stock_locations: "um local de estoque",
   alert_states: "um alerta",
+};
+
+/** Tabelas cuja alteração se descreve melhor como frase própria. */
+const TABLE_TEXT: Record<string, Record<string, string>> = {
+  job_role_epi_requirements: {
+    insert: "adicionou um EPI à matriz de um cargo",
+    update: "alterou um EPI na matriz de um cargo",
+    delete: "removeu um EPI da matriz de um cargo",
+  },
+  job_role_training_requirements: {
+    insert: "adicionou um treinamento obrigatório a um cargo",
+    update: "alterou um treinamento obrigatório de um cargo",
+    delete: "removeu um treinamento obrigatório de um cargo",
+  },
+  alert_settings: {
+    insert: "alterou a configuração dos alertas por e-mail",
+    update: "alterou a configuração dos alertas por e-mail",
+  },
 };
 
 /** Transforma uma linha do audit_log em uma frase curta para o feed do dashboard. */
@@ -68,6 +87,8 @@ export function describeActivity(
   let text: string;
   if (RPC_TEXT[row.action]) {
     text = RPC_TEXT[row.action];
+  } else if (row.tableName && TABLE_TEXT[row.tableName]?.[row.action]) {
+    text = TABLE_TEXT[row.tableName][row.action];
   } else if (row.tableName === "organizations") {
     text =
       row.action === "insert"
