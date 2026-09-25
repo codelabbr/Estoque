@@ -17,6 +17,7 @@ import {
   resolveLocation,
 } from "@/features/stock/queries";
 import { getCounterContext } from "@/features/deliveries/queries";
+import { getEmployeeTrainingStatus } from "@/features/trainings/queries";
 import { EmployeePicker } from "@/features/deliveries/components/EmployeePicker";
 import {
   DeliveryCart,
@@ -79,11 +80,27 @@ export default async function NewDeliveryPage({
 
   const { current } = await resolveLocation(org.id, sp.local);
   if (!current) notFound();
-  const [epis, balances] = await Promise.all([
+  const [epis, balances, trainings] = await Promise.all([
     listEpiOptions(org.id),
     getBalancesByVariant(org.id, current.id),
+    getEmployeeTrainingStatus(org.id, employee.id),
   ]);
   const today = todayInSaoPaulo();
+
+  // EPI que exige treinamento: aviso (não bloqueia) se o funcionário não tem o treinamento válido.
+  const trainingStatus = new Map(
+    trainings.map((t) => [t.training_type_id, t.status]),
+  );
+  const trainingWarnings: Record<string, string> = {};
+  for (const e of epis) {
+    if (!e.requiredTraining) continue;
+    const status = trainingStatus.get(e.requiredTraining.id);
+    if (status === "valido" || status === "a_vencer") continue;
+    trainingWarnings[e.id] =
+      status === "vencido"
+        ? `${e.requiredTraining.name} vencido`
+        : `${e.requiredTraining.name} nunca realizado`;
+  }
 
   const activeEpiIds = new Set(epis.map((e) => e.id));
   const suggestions: Suggestion[] = [];
@@ -205,6 +222,7 @@ export default async function NewDeliveryPage({
           holdingsByEpi={holdingsByEpi}
           today={today}
           canOverrideCa={isOrgAdmin(role)}
+          trainingWarnings={trainingWarnings}
         />
       )}
     </div>

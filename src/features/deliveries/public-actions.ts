@@ -1,8 +1,8 @@
 "use server";
 
-import { isIP } from "node:net";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getClientIp } from "@/lib/client-ip";
 import { mapDbError } from "@/lib/errors";
 import { invalid, type ActionResult } from "@/lib/actions";
 import { dataUrlToBytea, signatureSchema } from "./schemas";
@@ -22,9 +22,7 @@ export async function signByToken(
   if (!parsed.success) return invalid(parsed.error);
 
   const h = await headers();
-  const forwarded =
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "";
-  const ip = isIP(forwarded) ? forwarded : undefined;
+  const ip = await getClientIp();
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("sign_delivery", {

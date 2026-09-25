@@ -62,6 +62,11 @@ export const epiSchema = z.object({
     .transform((v) => v || "un"),
   lifespanDays: optionalPositiveInt("Informe um número de dias maior que zero"),
   referenceCost: optionalMoney,
+  /** Treinamento exigido para receber o EPI (aviso na entrega). */
+  requiredTrainingTypeId: z
+    .union([z.literal(""), z.uuid("Seleção inválida")])
+    .optional()
+    .transform((v) => (v ? v : null)),
 });
 
 export const createEpiSchema = epiSchema.extend({
@@ -104,5 +109,6 @@ export function toDbEpi(data: z.output<typeof epiSchema>) {
     unit_of_measure: data.unitOfMeasure,
     lifespan_days: data.lifespanDays,
     reference_cost: data.referenceCost,
+    required_training_type_id: data.requiredTrainingTypeId,
   };
 }

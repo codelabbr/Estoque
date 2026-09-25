@@ -61,6 +61,7 @@ export function DeliveryCart({
   holdingsByEpi,
   today,
   canOverrideCa,
+  trainingWarnings = {},
 }: {
   orgSlug: string;
   employeeId: string;
@@ -72,6 +73,8 @@ export function DeliveryCart({
   today: string;
   /** Proprietário/Admin: pode liberar EPI com CA vencido, com justificativa. */
   canOverrideCa: boolean;
+  /** epiId → aviso de treinamento exigido faltando (não bloqueia). */
+  trainingWarnings?: Record<string, string>;
 }) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>([]);
@@ -414,6 +417,16 @@ export function DeliveryCart({
                             )}
                           </div>
                         )}
+                      </div>
+                    )}
+                    {trainingWarnings[l.epiId] && (
+                      <div className="bg-status-atencao/60 flex items-center gap-3 rounded-xl px-3 py-2 text-sm">
+                        <AlertTriangle className="text-status-atencao-foreground size-4 shrink-0" />
+                        <span>
+                          Este EPI exige treinamento:{" "}
+                          {trainingWarnings[l.epiId]}. A entrega é permitida,
+                          mas agende o treinamento.
+                        </span>
                       </div>
                     )}
                     {p.earlyReplacement && (

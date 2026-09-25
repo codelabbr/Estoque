@@ -52,7 +52,7 @@ export async function getEpi(orgId: string, id: string) {
   const { data, error } = await supabase
     .from("epis")
     .select(
-      "id, name, category, manufacturer, model, ca_number, ca_expires_at, unit_of_measure, lifespan_days, reference_cost, archived_at, created_at, epi_variants(id, size_label, sku, min_stock, archived_at)",
+      "id, name, category, manufacturer, model, ca_number, ca_expires_at, unit_of_measure, lifespan_days, reference_cost, required_training_type_id, archived_at, created_at, epi_variants(id, size_label, sku, min_stock, archived_at)",
     )
     .eq("organization_id", orgId)
     .eq("id", id)
@@ -75,7 +75,7 @@ export async function listEpiOptions(orgId: string) {
   const { data, error } = await supabase
     .from("epis")
     .select(
-      "id, name, ca_number, ca_expires_at, lifespan_days, epi_variants(id, size_label, archived_at)",
+      "id, name, ca_number, ca_expires_at, lifespan_days, required_training_type_id, training_types(name), epi_variants(id, size_label, archived_at)",
     )
     .eq("organization_id", orgId)
     .is("archived_at", null)
@@ -87,6 +87,12 @@ export async function listEpiOptions(orgId: string) {
     caNumber: e.ca_number,
     caExpiresAt: e.ca_expires_at,
     lifespanDays: e.lifespan_days,
+    requiredTraining: e.required_training_type_id
+      ? {
+          id: e.required_training_type_id,
+          name: e.training_types?.name ?? "Treinamento",
+        }
+      : null,
     variants: e.epi_variants
       .filter((v) => !v.archived_at)
       .sort((a, b) =>
