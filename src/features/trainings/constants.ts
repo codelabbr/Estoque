@@ -21,11 +21,14 @@ export const COMPLIANCE_STATUS: Record<
   irregular: { label: "Irregular", status: "irregular" },
 };
 
+/** Tipos de pendência do motor de conformidade (v_compliance_issues). */
 export const ISSUE_LABELS: Record<string, string> = {
-  treinamento_pendente: "Treinamento pendente",
+  epi_obrigatorio_nunca_entregue: "EPI obrigatório nunca entregue",
+  troca_vencida: "Troca de EPI vencida",
+  troca_vencendo: "Troca de EPI vence em até 7 dias",
+  ca_vencido_em_uso: "EPI em uso com CA vencido",
+  entrega_sem_assinatura: "Entrega sem assinatura",
+  treinamento_nunca_realizado: "Treinamento obrigatório nunca realizado",
   treinamento_vencido: "Treinamento vencido",
-  treinamento_a_vencer: "Treinamento a vencer",
-  epi_nao_entregue: "EPI obrigatório não entregue",
-  troca_epi_vencida: "Troca de EPI vencida",
-  troca_epi_proxima: "Troca de EPI próxima",
+  treinamento_vencendo: "Treinamento vence em breve",
 };

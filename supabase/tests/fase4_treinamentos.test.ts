@@ -202,7 +202,9 @@ describe("conformidade", () => {
     expect((await compliance(ana))!.status).toBe("atencao");
     const b = await compliance(bruno);
     expect(b!.status).toBe("irregular");
-    expect(b!.issues.map((i) => i.kind)).toContain("treinamento_pendente");
+    expect(b!.issues.map((i) => i.kind)).toContain(
+      "treinamento_nunca_realizado",
+    );
   });
 
   it("EPI obrigatório sem entrega deixa irregular", async () => {
@@ -220,7 +222,9 @@ describe("conformidade", () => {
     });
     const c = await compliance(ana);
     expect(c!.status).toBe("irregular");
-    expect(c!.issues.map((i) => i.kind)).toContain("epi_nao_entregue");
+    expect(c!.issues.map((i) => i.kind)).toContain(
+      "epi_obrigatorio_nunca_entregue",
+    );
   });
 
   it("funcionário desligado sai da conformidade", async () => {
