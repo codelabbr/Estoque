@@ -129,3 +129,23 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 ## 2026-09-25 — "O que fazer hoje" agrupado por funcionário e ação
 
 **Decisão:** a lista mostra uma linha por funcionário e ação (Entregar, Coletar assinatura, Agendar treinamento), mais estoque abaixo do mínimo (Repor estoque), limitada a 8 linhas com "Ver todos". Avisos não viram ação. "CAs vencendo" usa `alert_days_ca` (padrão 30), como o alerta existente.
+
+## 2026-09-25 — Planilhas XLSX com read-excel-file
+
+**Contexto:** a importação precisava aceitar XLSX além de CSV. O pacote `xlsx` (SheetJS) do npm está parado na versão 0.18.5, com vulnerabilidades conhecidas; a versão mantida só é distribuída fora do npm.
+**Decisão:** `read-excel-file` (MIT), carregado sob demanda no navegador só quando o arquivo é XLSX. Lê a primeira aba; datas e números do Excel são convertidos para texto antes da mesma validação por linha do CSV. A planilha modelo continua em CSV (abre no Excel com `;` e UTF-8 com BOM).
+**Consequências:** matrícula digitada como número no Excel perde zeros à esquerda (o CPF é completado para 11 dígitos); a orientação é formatar a coluna como texto.
+
+## 2026-09-25 — Importação: cargo novo só com confirmação
+
+**Decisão:** cargos citados na planilha que não existem aparecem na prévia com a opção "Criar esses cargos" (desmarcada por padrão). Sem marcar, essas linhas não são importadas (o banco também confere: `import_employees(..., p_create_job_roles)`). Setores novos continuam sendo criados automaticamente. CPF **ou matrícula** já cadastrados pulam a linha e aparecem no relatório final (antes a matrícula repetida abortava a importação inteira).
+
+## 2026-09-25 — Resumo diário: configurável, destinatários por pessoa e irregulares novos
+
+**Contexto:** a especificação pedia Edge Function + agendamento; o resumo já existia com Vercel Cron + Resend (decisão de 2026-09-23).
+**Decisão:** mantido o Vercel Cron. `alert_settings` guarda a ativação geral e por tipo (sem linha = tudo ativado). Destinatários = membros com `daily_digest` ligado, qualquer papel; almoxarife e somente leitura começam desligados (migration 09 desligou os existentes para não passar a receber de repente). "Irregulares novos" = irregulares de hoje que não estavam na foto diária anterior (`compliance_snapshots`); na primeira execução a foto vira a base e ninguém aparece como novo.
+**Consequências:** o link do e-mail para ajustes aponta para Configurações → Alertas. Exige `RESEND_API_KEY`, `EMAIL_FROM` e `CRON_SECRET` na Vercel para enviar de verdade.
+
+## 2026-09-25 — Tela de auditoria reaproveita audit_log
+
+**Decisão:** a especificação pedia uma tabela `auditoria`; `audit_log` já é append-only (trigger `raise_immutable`, sem policy de escrita) e tem quem, o quê, quando, entidade e antes/depois. A migration 09 passou a auditar a matriz; a tela fica em Configurações → Auditoria (owner/admin). CPF é mascarado no servidor antes de ir para a tela.
