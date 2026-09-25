@@ -308,7 +308,12 @@ describe("import_employees", () => {
       async (tx) =>
         (
           await tx.query<{
-            r: { inserted: number; skipped: number; skipped_cpfs: string[] };
+            r: {
+              inserted: number;
+              skipped: number;
+              skipped_rows: { cpf: string; reason: string }[];
+              created_job_roles: string[];
+            };
           }>("select import_employees($1, $2::jsonb) as r", [
             a.orgId,
             JSON.stringify([
@@ -330,7 +335,11 @@ describe("import_employees", () => {
           ])
         ).rows[0].r,
     );
-    expect(result).toEqual({ inserted: 2, skipped: 1, skipped_cpfs: [CPF] });
+    expect(result).toMatchObject({ inserted: 2, skipped: 1 });
+    expect(result.skipped_rows).toEqual([
+      { cpf: CPF, name: "Ana Duplicada", reason: "ja_cadastrado" },
+    ]);
+    expect(result.created_job_roles).toEqual(["Pintor"]);
 
     const { rows } = await db.query<{ n: number }>(
       "select count(*)::int as n from sectors where organization_id = $1 and lower(name) = 'manutenção'",
