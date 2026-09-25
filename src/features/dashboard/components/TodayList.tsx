@@ -1,22 +1,17 @@
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, ChevronRight } from "lucide-react";
-import { describeDue } from "@/lib/format";
-import {
-  ALERT_KIND_LABELS,
-  alertAction,
-  type AlertRow,
-} from "@/features/alerts/constants";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { TodayAction } from "@/features/dashboard/compliance";
 
+/** "O que fazer hoje": pendências que tornam alguém irregular, cada uma com a ação que resolve. */
 export function TodayList({
   orgSlug,
-  alerts,
-  totalCritical,
-  totalAttention,
+  actions,
+  total,
 }: {
   orgSlug: string;
-  alerts: AlertRow[];
-  totalCritical: number;
-  totalAttention: number;
+  actions: TodayAction[];
+  total: number;
 }) {
   return (
     <section aria-labelledby="today-title" className="border-b">
@@ -24,59 +19,57 @@ export function TodayList({
         <h2 id="today-title" className="text-xl font-extrabold tracking-tight">
           O que fazer hoje
         </h2>
-        {(totalCritical > 0 || totalAttention > 0) && (
+        {total > actions.length && (
           <Link
-            href={`/${orgSlug}/alertas`}
+            href={`/${orgSlug}/funcionarios?filtro=irregulares`}
             className="text-primary text-sm font-medium hover:underline"
           >
-            Ver {totalCritical + totalAttention} alertas
+            Ver todos ({total})
           </Link>
         )}
       </div>
-      {alerts.length === 0 ? (
+      {actions.length === 0 ? (
         <div className="flex items-center gap-3 px-4 py-6 sm:px-5">
           <CheckCircle2 className="text-status-ok-foreground size-6 shrink-0" />
           <p className="text-[15px]">
-            <strong>Nada crítico.</strong>{" "}
+            <strong>Nada pendente.</strong>{" "}
             <span className="text-muted-foreground">
-              {totalAttention > 0
-                ? `${totalAttention} ${totalAttention === 1 ? "item pede" : "itens pedem"} atenção nos próximos dias.`
-                : "Tudo em dia por aqui."}
+              Todos os funcionários estão em dia e o estoque está acima do
+              mínimo.
             </span>
           </p>
         </div>
       ) : (
         <ul>
-          {alerts.map((a) => {
-            const action = alertAction(a, orgSlug);
-            return (
-              <li key={a.alert_key} className="border-b last:border-b-0">
-                <Link
-                  href={action.href}
-                  className="hover:bg-foreground/[0.03] flex items-center gap-3 px-4 py-3 transition-colors sm:px-5"
-                >
-                  <span
-                    className={
-                      a.severity === "critico"
-                        ? "bg-status-irregular text-status-irregular-foreground flex size-10 shrink-0 items-center justify-center rounded-full"
-                        : "bg-status-atencao text-status-atencao-foreground flex size-10 shrink-0 items-center justify-center rounded-full"
-                    }
-                  >
-                    <AlertTriangle className="size-5" aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold">{a.title}</p>
-                    <p className="text-muted-foreground truncate text-sm">
-                      {ALERT_KIND_LABELS[a.kind]}
-                      {a.due_date && ` · ${describeDue(a.due_date)}`} ·{" "}
-                      <span className="text-primary">{action.label}</span>
-                    </p>
-                  </div>
-                  <ChevronRight className="text-muted-foreground size-4 shrink-0" />
-                </Link>
-              </li>
-            );
-          })}
+          {actions.map((a) => (
+            <li
+              key={a.key}
+              className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:px-5"
+            >
+              <span
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-full",
+                  a.severity === "critico"
+                    ? "bg-status-irregular text-status-irregular-foreground"
+                    : "bg-status-atencao text-status-atencao-foreground",
+                )}
+              >
+                <AlertTriangle className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-bold">{a.title}</p>
+                <p className="text-muted-foreground truncate text-sm">
+                  {a.detail}
+                </p>
+              </div>
+              <Link
+                href={a.action.href}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-9 shrink-0 items-center rounded-full px-4 text-sm font-bold transition-colors"
+              >
+                {a.action.label}
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </section>

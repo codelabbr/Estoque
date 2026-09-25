@@ -8,6 +8,7 @@ import { getOrgContext } from "@/lib/org";
 import { canOperateStock } from "@/lib/permissions";
 import { mapDbError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/url";
+import { getClientIp } from "@/lib/client-ip";
 import { invalid, PERMISSION_DENIED, type ActionResult } from "@/lib/actions";
 import {
   cancelDeliverySchema,
@@ -176,6 +177,7 @@ export async function signInPerson(
   const parsed = signatureSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const userAgent = (await headers()).get("user-agent") ?? undefined;
+  const ip = await getClientIp();
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("sign_delivery_in_person", {
@@ -190,6 +192,7 @@ export async function signInPerson(
         ? parsed.data.typedName
         : undefined,
     p_user_agent: userAgent,
+    p_ip: ip,
   });
   if (error) return { ok: false, error: mapDbError(error) };
   revalidate(orgSlug);

@@ -32,10 +32,13 @@ export function EpiForm({
   orgSlug,
   epiId,
   defaultValues,
+  trainingTypes = [],
 }: {
   orgSlug: string;
   epiId?: string;
   defaultValues?: Partial<FormIn>;
+  /** Tipos de treinamento para "Exige treinamento". */
+  trainingTypes?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const isEdit = !!epiId;
@@ -210,6 +213,36 @@ export function EpiForm({
               />
               <FieldError errors={[errors.referenceCost]} />
             </Field>
+            {trainingTypes.length > 0 && (
+              <Field
+                data-invalid={!!errors.requiredTrainingTypeId}
+                className="sm:col-span-2"
+              >
+                <FieldLabel htmlFor="requiredTrainingTypeId">
+                  Exige treinamento{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (opcional)
+                  </span>
+                </FieldLabel>
+                <NativeSelect
+                  id="requiredTrainingTypeId"
+                  {...register("requiredTrainingTypeId")}
+                  defaultValue={defaultValues?.requiredTrainingTypeId ?? ""}
+                >
+                  <option value="">Nenhum</option>
+                  {trainingTypes.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+                <FieldDescription>
+                  Ex.: cinto paraquedista exige NR-35. A entrega mostra um aviso
+                  se o funcionário não tiver o treinamento válido.
+                </FieldDescription>
+                <FieldError errors={[errors.requiredTrainingTypeId]} />
+              </Field>
+            )}
           </FieldGroup>
         </FieldSet>
       </Panel>

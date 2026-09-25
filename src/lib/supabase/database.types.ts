@@ -505,6 +505,7 @@ export type Database = {
           organization_id: string;
           photo_path: string | null;
           reference_cost: number | null;
+          required_training_type_id: string | null;
           unit_of_measure: string;
           updated_at: string;
         };
@@ -522,6 +523,7 @@ export type Database = {
           organization_id: string;
           photo_path?: string | null;
           reference_cost?: number | null;
+          required_training_type_id?: string | null;
           unit_of_measure?: string;
           updated_at?: string;
         };
@@ -539,6 +541,7 @@ export type Database = {
           organization_id?: string;
           photo_path?: string | null;
           reference_cost?: number | null;
+          required_training_type_id?: string | null;
           unit_of_measure?: string;
           updated_at?: string;
         };
@@ -549,6 +552,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "epis_required_training_fk";
+            columns: ["organization_id", "required_training_type_id"];
+            isOneToOne: false;
+            referencedRelation: "training_types";
+            referencedColumns: ["organization_id", "id"];
           },
         ];
       };
@@ -1254,6 +1264,18 @@ export type Database = {
         };
         Relationships: [];
       };
+      v_compliance_issues: {
+        Row: {
+          employee_id: string | null;
+          item_id: string | null;
+          kind: string | null;
+          label: string | null;
+          organization_id: string | null;
+          reference_date: string | null;
+          severity: string | null;
+        };
+        Relationships: [];
+      };
       v_employee_compliance: {
         Row: {
           employee_id: string | null;
@@ -1442,6 +1464,17 @@ export type Database = {
         };
         Returns: string;
       };
+      deliver_epis_at: {
+        Args: {
+          p_org: string;
+          p_employee: string;
+          p_location: string;
+          p_items: Json;
+          p_notes: string;
+          p_at: string;
+        };
+        Returns: string;
+      };
       delivery_content_hash: {
         Args: {
           p_delivery: string;
@@ -1520,6 +1553,19 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      fn_conformidade_funcionarios: {
+        Args: {
+          p_org: string;
+        };
+        Returns: {
+          employee_id: string;
+          employee_name: string;
+          job_role_id: string;
+          sector_id: string;
+          status: string;
+          pendencias: Json;
+        }[];
       };
       get_invite: {
         Args: {
@@ -1663,6 +1709,7 @@ export type Database = {
           p_image_png?: string;
           p_typed_name?: string;
           p_user_agent?: string;
+          p_ip?: string;
         };
         Returns: string;
       };

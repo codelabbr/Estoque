@@ -5,6 +5,7 @@ import { getOrgContext } from "@/lib/org";
 import { canManageRegistry } from "@/lib/permissions";
 import { getEpi } from "@/features/epis/queries";
 import { EpiForm } from "@/features/epis/components/EpiForm";
+import { listTrainingTypeOptions } from "@/features/structure/queries";
 
 export const metadata: Metadata = { title: "Editar EPI — Almox SST" };
 
@@ -16,7 +17,10 @@ export default async function EditEpiPage({
   const { orgSlug, id } = await params;
   const { org, role } = await getOrgContext(orgSlug);
   if (!canManageRegistry(role)) redirect(`/${orgSlug}/epis/${id}`);
-  const epi = await getEpi(org.id, id);
+  const [epi, trainingTypes] = await Promise.all([
+    getEpi(org.id, id),
+    listTrainingTypeOptions(org.id),
+  ]);
   if (!epi) notFound();
 
   return (
@@ -28,7 +32,9 @@ export default async function EditEpiPage({
       <EpiForm
         orgSlug={orgSlug}
         epiId={id}
+        trainingTypes={trainingTypes}
         defaultValues={{
+          requiredTrainingTypeId: epi.required_training_type_id ?? "",
           name: epi.name,
           category: epi.category,
           manufacturer: epi.manufacturer ?? "",

@@ -2,7 +2,29 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { PAGE_SIZE } from "@/components/shared/pagination";
 
-export type EmployeeFilter = "ativos" | "desligados" | "arquivados";
+export type EmployeeFilter =
+  "ativos" | "irregulares" | "trocas" | "desligados" | "arquivados";
+
+/** Ativos com pendência que torna irregular, ou com troca de EPI vencendo em até 7 dias. */
+async function employeeIdsWithIssues(
+  orgId: string,
+  filter: "irregulares" | "trocas",
+) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("v_compliance_issues")
+    .select("employee_id")
+    .eq("organization_id", orgId);
+  query =
+    filter === "irregulares"
+      ? query.eq("severity", "irregular")
+      : query.eq("kind", "troca_vencendo");
+  const { data, error } = await query;
+  if (error) throw error;
+  return [
+    ...new Set(data.map((r) => r.employee_id).filter(Boolean)),
+  ] as string[];
+}
 
 export async function listEmployees(
   orgId: string,
@@ -32,6 +54,11 @@ export async function listEmployees(
       opts.filter === "desligados"
         ? query.not("terminated_at", "is", null)
         : query.is("terminated_at", null);
+  }
+  if (opts.filter === "irregulares" || opts.filter === "trocas") {
+    const ids = await employeeIdsWithIssues(orgId, opts.filter);
+    if (ids.length === 0) return { rows: [], total: 0 };
+    query = query.in("id", ids);
   }
   if (opts.jobRoleId) query = query.eq("job_role_id", opts.jobRoleId);
   if (opts.q) {

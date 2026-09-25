@@ -113,3 +113,19 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 
 **Decisão:** `deliver_epis` bloqueia EPI com CA vencido; a liberação exige papel `owner`/`admin` e justificativa (≥ 10 caracteres), gravada no item (`ca_override_reason`) e no `audit_log`.
 **Consequências:** `safety` e `storekeeper` veem o bloqueio e precisam pedir a liberação.
+
+## 2026-09-25 — Motor de conformidade: fonte única e o que é "em dia"
+
+**Contexto:** a especificação pede `fn_conformidade_funcionarios(org)` com status `em_dia`/`irregular`. Já existia `v_employee_compliance` (ok/atenção/irregular), usada por funcionários, relatórios e treinamentos.
+**Decisão:** `v_compliance_issues` é a única fonte das pendências (uma linha por pendência). A função e a view existente leem dela; a view mantém as colunas e mapeia `em_dia` com avisos para `atencao`. **Em dia = nenhuma pendência que torne irregular**; avisos (troca em ≤ 7 dias, treinamento vencendo em ≤ `alert_days_training`) não tiram ninguém do "em dia". Entrega sem assinatura torna irregular desde o primeiro momento (sem assinatura não há prova). Só EPIs marcados como obrigatórios na matriz contam; a troca vencida usa a periodicidade do cargo calculada na hora (se a matriz mudar, a conformidade muda junto). O CA vencido em uso usa o snapshot da entrega; entregas antigas, sem snapshot, usam a validade atual do cadastro.
+**Consequências:** os tipos de pendência passaram a ter os nomes da especificação (`epi_obrigatorio_nunca_entregue`, `troca_vencida` etc.); os alertas (`v_alerts`) continuam com os tipos próprios.
+
+## 2026-09-25 — Entrega com data retroativa só para dados de exemplo
+
+**Contexto:** para os dados de exemplo mostrarem trocas vencidas, é preciso ter entregas antigas; mas registrar entrega com data passada pelo app enfraqueceria a prova.
+**Decisão:** o corpo da entrega foi para `deliver_epis_at(..., p_at)`, sem `execute` para `authenticated` (o app não a chama). `deliver_epis` usa sempre `now()`. Só `seed_demo_data` (security definer) usa datas passadas.
+**Consequências:** nenhuma tela ou API consegue retroagir uma entrega real.
+
+## 2026-09-25 — "O que fazer hoje" agrupado por funcionário e ação
+
+**Decisão:** a lista mostra uma linha por funcionário e ação (Entregar, Coletar assinatura, Agendar treinamento), mais estoque abaixo do mínimo (Repor estoque), limitada a 8 linhas com "Ver todos". Avisos não viram ação. "CAs vencendo" usa `alert_days_ca` (padrão 30), como o alerta existente.

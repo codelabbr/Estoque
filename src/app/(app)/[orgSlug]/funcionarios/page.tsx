@@ -26,6 +26,8 @@ export const metadata: Metadata = { title: "Funcionários — Almox SST" };
 
 const FILTERS: { value: EmployeeFilter; label: string }[] = [
   { value: "ativos", label: "Ativos" },
+  { value: "irregulares", label: "Irregulares" },
+  { value: "trocas", label: "Troca em 7 dias" },
   { value: "desligados", label: "Desligados" },
   { value: "arquivados", label: "Arquivados" },
 ];
