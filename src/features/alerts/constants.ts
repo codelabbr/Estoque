@@ -91,7 +91,7 @@ export function alertAction(
     case "ca_a_vencer":
       return { label: "Atualizar CA", href: `${base}/epis/${a.epi_id}/editar` };
     case "estoque_minimo":
-      return { label: "Nova entrada", href: `${base}/estoque/entrada` };
+      return { label: "Repor estoque", href: `${base}/estoque/entrada` };
     case "assinatura_pendente":
       return {
         label: "Colher assinatura",

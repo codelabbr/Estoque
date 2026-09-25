@@ -79,7 +79,7 @@ export default async function DashboardPage({
         />
         <TodayList
           orgSlug={orgSlug}
-          alerts={data.criticalAlerts}
+          alerts={data.todayAlerts}
           totalCritical={data.alertCounts.critico}
           totalAttention={data.alertCounts.atencao}
         />

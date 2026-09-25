@@ -55,7 +55,13 @@ export function TodayList({
                   href={action.href}
                   className="hover:bg-foreground/[0.03] flex items-center gap-3 px-4 py-3 transition-colors sm:px-5"
                 >
-                  <span className="bg-status-irregular text-status-irregular-foreground flex size-10 shrink-0 items-center justify-center rounded-full">
+                  <span
+                    className={
+                      a.severity === "critico"
+                        ? "bg-status-irregular text-status-irregular-foreground flex size-10 shrink-0 items-center justify-center rounded-full"
+                        : "bg-status-atencao text-status-atencao-foreground flex size-10 shrink-0 items-center justify-center rounded-full"
+                    }
+                  >
                     <AlertTriangle className="size-5" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">

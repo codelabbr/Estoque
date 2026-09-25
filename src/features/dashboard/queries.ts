@@ -11,7 +11,8 @@ export type DashboardData = {
   compliance: { ok: number; atencao: number; irregular: number; total: number };
   pendingSignatures: number;
   deliveriesThisWeek: number;
-  criticalAlerts: AlertRow[];
+  /** "O que fazer hoje": críticos + estoque abaixo do mínimo, críticos primeiro. */
+  todayAlerts: AlertRow[];
   alertCounts: { critico: number; atencao: number };
   stockCritical: number;
   setup: {
@@ -123,7 +124,13 @@ export async function getDashboardData(
     compliance: dist,
     pendingSignatures: pending.count ?? 0,
     deliveriesThisWeek: weekDeliveries.count ?? 0,
-    criticalAlerts: alerts.filter((a) => a.severity === "critico").slice(0, 6),
+    todayAlerts: alerts
+      .filter((a) => a.severity === "critico" || a.kind === "estoque_minimo")
+      .sort(
+        (x, y) =>
+          Number(y.severity === "critico") - Number(x.severity === "critico"),
+      )
+      .slice(0, 6),
     alertCounts: {
       critico: alerts.filter((a) => a.severity === "critico").length,
       atencao: alerts.filter((a) => a.severity === "atencao").length,
