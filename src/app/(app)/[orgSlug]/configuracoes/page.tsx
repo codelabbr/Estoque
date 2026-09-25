@@ -40,6 +40,9 @@ import { InviteDialog } from "@/features/organizations/components/InviteDialog";
 import { listPendingInvites } from "@/features/organizations/queries";
 import { revokeInvite } from "@/features/organizations/actions";
 import { listLocations } from "@/features/stock/queries";
+import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_ALERT_SETTINGS } from "@/features/alerts/digest";
+import { AlertSettingsPanel } from "@/features/alerts/components/AlertSettingsPanel";
 import { archiveLocation, createLocation } from "@/features/stock/actions";
 
 export const metadata: Metadata = { title: "Configurações — Almox SST" };
@@ -48,6 +51,7 @@ const TABS = [
   { value: "organizacao", label: "Organização" },
   { value: "estrutura", label: "Estrutura" },
   { value: "equipe", label: "Equipe" },
+  { value: "alertas", label: "Alertas" },
 ];
 
 const ROLE_DESCRIPTIONS: Record<OrgRole, string> = {
@@ -121,7 +125,56 @@ export default async function SettingsPage({
           currentUserId={user.id}
         />
       )}
+      {tab === "alertas" && (
+        <AlertsTab
+          orgSlug={orgSlug}
+          orgId={org.id}
+          canEdit={isOrgAdmin(role)}
+        />
+      )}
     </div>
+  );
+}
+
+async function AlertsTab({
+  orgSlug,
+  orgId,
+  canEdit,
+}: {
+  orgSlug: string;
+  orgId: string;
+  canEdit: boolean;
+}) {
+  const supabase = await createClient();
+  const [members, { data: settings }, { data: digest }] = await Promise.all([
+    listOrgMembers(orgId),
+    supabase
+      .from("alert_settings")
+      .select(
+        "enabled, notify_new_irregulars, notify_ca, notify_replacements, notify_trainings, notify_stock, notify_signatures",
+      )
+      .eq("organization_id", orgId)
+      .maybeSingle(),
+    supabase
+      .from("organization_members")
+      .select("user_id, daily_digest")
+      .eq("organization_id", orgId),
+  ]);
+  const digestByUser = new Map(
+    (digest ?? []).map((d) => [d.user_id, d.daily_digest] as const),
+  );
+  return (
+    <AlertSettingsPanel
+      orgSlug={orgSlug}
+      canEdit={canEdit}
+      settings={settings ?? DEFAULT_ALERT_SETTINGS}
+      members={members.map((m) => ({
+        userId: m.user_id,
+        email: m.email,
+        role: m.role,
+        dailyDigest: digestByUser.get(m.user_id) ?? false,
+      }))}
+    />
   );
 }
 

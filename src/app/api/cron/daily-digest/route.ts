@@ -5,12 +5,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSiteUrl } from "@/lib/url";
 import { describeDue, todayInSaoPaulo } from "@/lib/format";
 import { emailChannel } from "@/lib/email/send";
+import { ISSUE_LABELS } from "@/features/trainings/constants";
 import {
-  ALERT_KIND_LABELS,
-  ALERT_GROUPS,
-  type AlertKind,
-} from "@/features/alerts/constants";
-import { DailyDigest, type DigestSection } from "@/emails/DailyDigest";
+  buildDigest,
+  DEFAULT_ALERT_SETTINGS,
+  digestSubject,
+  newIrregulars,
+  type AlertSettings,
+} from "@/features/alerts/digest";
+import { DailyDigest } from "@/emails/DailyDigest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,11 +28,13 @@ function authorized(req: Request) {
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
+type Pendencia = { tipo: string; severidade: string; item: string };
+
 /**
  * Resumo diário (Vercel Cron, 10:00 UTC = 07:00 em São Paulo). Idempotente:
- * notification_log impede dois envios no mesmo dia; não envia se o conjunto
- * de alertas for igual ao último enviado. Uma organização com erro não
- * derruba as outras.
+ * notification_log impede dois envios no mesmo dia; não envia se o conteúdo
+ * for igual ao último enviado. Respeita Configurações → Alertas. Uma
+ * organização com erro não derruba as outras.
  */
 export async function GET(req: Request) {
   if (!authorized(req)) return new Response("Não autorizado", { status: 401 });
@@ -49,61 +54,82 @@ export async function GET(req: Request) {
   for (const org of orgs ?? []) {
     summary.organizations += 1;
     try {
-      const { data: alerts } = await admin
-        .from("v_alerts")
-        .select("alert_key, kind, severity, due_date, title")
+      const [{ data: settingsRow }, { data: alerts }, { data: compliance }] =
+        await Promise.all([
+          admin
+            .from("alert_settings")
+            .select(
+              "enabled, notify_new_irregulars, notify_ca, notify_replacements, notify_trainings, notify_stock, notify_signatures",
+            )
+            .eq("organization_id", org.id)
+            .maybeSingle(),
+          admin
+            .from("v_alerts")
+            .select("alert_key, kind, severity, due_date, title")
+            .eq("organization_id", org.id)
+            .in("severity", ["critico", "atencao"]),
+          admin.rpc("fn_conformidade_funcionarios", { p_org: org.id }),
+        ]);
+      const settings: AlertSettings = settingsRow ?? DEFAULT_ALERT_SETTINGS;
+
+      // Foto de hoje dos irregulares; "novos" = não estavam na última foto.
+      const irregularToday = (compliance ?? [])
+        .filter((r) => r.status === "irregular")
+        .map((r) => {
+          const first = ((r.pendencias ?? []) as unknown as Pendencia[]).find(
+            (p) => p.severidade === "irregular",
+          );
+          return {
+            employeeId: r.employee_id,
+            name: r.employee_name,
+            reason: first
+              ? `${ISSUE_LABELS[first.tipo] ?? first.tipo}: ${first.item}`
+              : "Pendência de conformidade",
+          };
+        });
+      const { data: previous } = await admin
+        .from("compliance_snapshots")
+        .select("irregular_employee_ids")
         .eq("organization_id", org.id)
-        .in("severity", ["critico", "atencao"]);
-      if (!alerts?.length) {
+        .lt("taken_on", today)
+        .order("taken_on", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      await admin.from("compliance_snapshots").upsert({
+        organization_id: org.id,
+        taken_on: today,
+        irregular_employee_ids: irregularToday.map((e) => e.employeeId),
+      });
+
+      const digest = buildDigest(
+        alerts ?? [],
+        settings,
+        newIrregulars(irregularToday, previous?.irregular_employee_ids ?? null),
+        describeDue,
+      );
+      if (!digest) {
         summary.skipped += 1;
         continue;
       }
       const payloadHash = createHash("sha256")
-        .update(
-          alerts
-            .map((a) => a.alert_key)
-            .sort()
-            .join("|"),
-        )
+        .update(digest.contentKeys.join("|"))
         .digest("hex");
 
-      const sections: DigestSection[] = ALERT_GROUPS.filter(
-        (g) => g.kinds.length,
-      )
-        .map((g) => {
-          const list = alerts
-            .filter((a) => g.kinds.includes(a.kind as AlertKind))
-            .sort(
-              (a, b) =>
-                (a.severity === "critico" ? -1 : 1) -
-                (b.severity === "critico" ? -1 : 1),
-            );
-          return {
-            label: g.label,
-            total: list.length,
-            items: list.slice(0, 10).map((a) => ({
-              title: a.title ?? "",
-              kindLabel: ALERT_KIND_LABELS[a.kind as AlertKind] ?? a.kind,
-              due: a.due_date ? describeDue(a.due_date) : null,
-              critical: a.severity === "critico",
-            })),
-          };
-        })
-        .filter((s) => s.total > 0);
-      const critical = alerts.filter((a) => a.severity === "critico").length;
       const html = await render(
         createElement(DailyDigest, {
           orgName: org.name,
-          criticalCount: critical,
-          attentionCount: alerts.length - critical,
-          sections,
-          alertsUrl: `${getSiteUrl()}/${org.slug}/alertas`,
-          settingsUrl: `${getSiteUrl()}/${org.slug}/alertas#resumo`,
+          criticalCount: digest.criticalCount,
+          attentionCount: digest.attentionCount,
+          sections: digest.sections,
+          alertsUrl: `${getSiteUrl()}/${org.slug}/dashboard`,
+          settingsUrl: `${getSiteUrl()}/${org.slug}/configuracoes?aba=alertas`,
         }),
       );
-      const subject = critical
-        ? `${critical} ${critical === 1 ? "item crítico" : "itens críticos"} hoje · ${org.name}`
-        : `${alerts.length} ${alerts.length === 1 ? "item pede" : "itens pedem"} atenção · ${org.name}`;
+      const subject = digestSubject(
+        org.name,
+        digest.criticalCount,
+        digest.attentionCount,
+      );
 
       const { data: recipients } = await admin.rpc("digest_recipients", {
         p_org: org.id,

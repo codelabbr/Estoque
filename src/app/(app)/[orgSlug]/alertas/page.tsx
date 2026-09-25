@@ -7,7 +7,7 @@ import { Panel, PanelHeader } from "@/components/shared/panel";
 import { FilterTabs } from "@/components/shared/filter-tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getOrgContext } from "@/lib/org";
-import { canManageRegistry } from "@/lib/permissions";
+import { canManageRegistry, isOrgAdmin } from "@/lib/permissions";
 import { describeDue } from "@/lib/format";
 import { listAlerts } from "@/features/alerts/queries";
 import {
@@ -47,8 +47,6 @@ export default async function AlertsPage({
     .eq("organization_id", org.id)
     .eq("user_id", user.id)
     .maybeSingle();
-  const receivesDigest =
-    role === "owner" || role === "admin" || role === "safety";
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
@@ -100,17 +98,23 @@ export default async function AlertsPage({
           canAct={canAct}
         />
       )}
-      {receivesDigest ? (
-        <Panel>
-          <DigestToggle
-            orgSlug={orgSlug}
-            enabled={membership?.daily_digest ?? true}
-          />
-        </Panel>
-      ) : (
+      <Panel>
+        <DigestToggle
+          orgSlug={orgSlug}
+          enabled={membership?.daily_digest ?? false}
+        />
+      </Panel>
+      {isOrgAdmin(role) && (
         <p className="text-muted-foreground flex items-center justify-center gap-2 text-center text-xs">
-          <BellOff className="size-3.5" /> O resumo diário por e-mail vai para
-          proprietários, administradores e segurança do trabalho.
+          <BellOff className="size-3.5" /> Tipos de alerta e destinatários do
+          resumo diário ficam em{" "}
+          <Link
+            href={`/${orgSlug}/configuracoes?aba=alertas`}
+            className="text-primary hover:underline"
+          >
+            Configurações → Alertas
+          </Link>
+          .
         </p>
       )}
     </div>
