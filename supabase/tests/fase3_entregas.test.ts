@@ -178,7 +178,12 @@ describe("deliver_epis", () => {
       /ca_vencido/,
     );
     const id = await deliver([
-      { variant_id: boot, quantity: 1, ca_override: true },
+      {
+        variant_id: boot,
+        quantity: 1,
+        ca_override: true,
+        ca_override_reason: "Lote novo em trânsito, uso emergencial",
+      },
     ]);
     const { rows } = await db.query<{ ca_expired_override: boolean }>(
       "select ca_expired_override from epi_delivery_items where delivery_id = $1",
@@ -435,7 +440,12 @@ describe("cancelamento e devolução", () => {
   it("devolução para estoque soma; para descarte não soma; só uma vez", async () => {
     const id = await deliver([
       { variant_id: glove, quantity: 1 },
-      { variant_id: boot, quantity: 1, ca_override: true },
+      {
+        variant_id: boot,
+        quantity: 1,
+        ca_override: true,
+        ca_override_reason: "Lote novo em trânsito, uso emergencial",
+      },
     ]);
     const items = (
       await db.query<{ id: string; variant_id: string }>(

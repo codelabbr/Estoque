@@ -4,11 +4,14 @@ import type { Status } from "@/components/shared/status-badge";
 export type DeliveryReason = Database["public"]["Enums"]["delivery_reason"];
 export type SignatureStatus = Database["public"]["Enums"]["signature_status"];
 
+// Os valores do banco troca_vencimento/troca_dano são mantidos porque o motivo
+// entra no hash das entregas já assinadas; só o rótulo segue o vocabulário novo.
 export const REASON_LABELS: Record<DeliveryReason, string> = {
   primeira_entrega: "Primeira entrega",
-  troca_vencimento: "Troca por vencimento",
-  troca_dano: "Troca por dano",
+  troca_vencimento: "Troca periódica",
+  troca_dano: "Dano",
   perda: "Perda",
+  devolucao_substituicao: "Devolução e substituição",
   novo_cargo: "Mudança de cargo",
   outro: "Outro",
 };

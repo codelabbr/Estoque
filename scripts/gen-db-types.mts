@@ -113,8 +113,17 @@ function tsType(pgType: string): string {
   else if (["bool", "boolean"].includes(t)) base = "boolean";
   else if (
     [
-      "int2", "int4", "int8", "float4", "float8", "numeric", "smallint",
-      "integer", "bigint", "real", "double precision",
+      "int2",
+      "int4",
+      "int8",
+      "float4",
+      "float8",
+      "numeric",
+      "smallint",
+      "integer",
+      "bigint",
+      "real",
+      "double precision",
     ].includes(t)
   )
     base = "number";
@@ -212,8 +221,10 @@ function functionTs(f: (typeof functions)[number]) {
     const mode = modes[i];
     const name = names[i] ?? `arg${i}`;
     const udt = type.endsWith("[]") ? `_${type.slice(0, -2)}` : type;
-    if (mode === "i" || mode === "b" || mode === "v") inArgs.push({ name, type: udt });
-    if (mode === "o" || mode === "b" || mode === "t") outCols.push({ name, type: udt });
+    if (mode === "i" || mode === "b" || mode === "v")
+      inArgs.push({ name, type: udt });
+    if (mode === "o" || mode === "b" || mode === "t")
+      outCols.push({ name, type: udt });
   });
   const firstDefault = inArgs.length - f.n_defaults;
   const args = inArgs.length
@@ -239,7 +250,9 @@ function functionTs(f: (typeof functions)[number]) {
           isSetofReturn: ${f.ret_set};
         };`;
   } else {
-    const udt = f.ret_type.endsWith("[]") ? `_${f.ret_type.slice(0, -2)}` : f.ret_type;
+    const udt = f.ret_type.endsWith("[]")
+      ? `_${f.ret_type.slice(0, -2)}`
+      : f.ret_type;
     returns = `${tsType(udt)}${f.ret_set ? "[]" : ""}`;
   }
   return `      ${f.name}: {
@@ -399,6 +412,10 @@ ${constantsEnums}
 `;
 
 writeFileSync(OUT, out);
-execFileSync("pnpm", ["exec", "prettier", "--write", OUT], { stdio: "ignore" });
+// No Windows o pnpm é um .cmd e só roda via shell.
+execFileSync("pnpm", ["exec", "prettier", "--write", OUT], {
+  stdio: "ignore",
+  shell: process.platform === "win32",
+});
 await db.close();
 console.log(`Tipos gerados em ${OUT}`);

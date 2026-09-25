@@ -366,7 +366,9 @@ export type Database = {
       epi_delivery_items: {
         Row: {
           ca_expired_override: boolean;
+          ca_expires_at_snapshot: string | null;
           ca_number_snapshot: string | null;
+          ca_override_reason: string | null;
           delivery_id: string;
           epi_name_snapshot: string;
           id: string;
@@ -382,7 +384,9 @@ export type Database = {
         };
         Insert: {
           ca_expired_override?: boolean;
+          ca_expires_at_snapshot?: string | null;
           ca_number_snapshot?: string | null;
+          ca_override_reason?: string | null;
           delivery_id: string;
           epi_name_snapshot: string;
           id?: string;
@@ -398,7 +402,9 @@ export type Database = {
         };
         Update: {
           ca_expired_override?: boolean;
+          ca_expires_at_snapshot?: string | null;
           ca_number_snapshot?: string | null;
+          ca_override_reason?: string | null;
           delivery_id?: string;
           epi_name_snapshot?: string;
           id?: string;
@@ -550,20 +556,26 @@ export type Database = {
         Row: {
           epi_id: string;
           job_role_id: string;
+          mandatory: boolean;
           organization_id: string;
           quantity: number;
+          replacement_days: number | null;
         };
         Insert: {
           epi_id: string;
           job_role_id: string;
+          mandatory?: boolean;
           organization_id: string;
           quantity?: number;
+          replacement_days?: number | null;
         };
         Update: {
           epi_id?: string;
           job_role_id?: string;
+          mandatory?: boolean;
           organization_id?: string;
           quantity?: number;
+          replacement_days?: number | null;
         };
         Relationships: [
           {
@@ -935,6 +947,7 @@ export type Database = {
         Row: {
           content_hash: string;
           delivery_id: string;
+          evidence_hash: string | null;
           id: string;
           image_png: string | null;
           ip: string | null;
@@ -949,6 +962,7 @@ export type Database = {
         Insert: {
           content_hash: string;
           delivery_id: string;
+          evidence_hash?: string | null;
           id?: string;
           image_png?: string | null;
           ip?: string | null;
@@ -963,6 +977,7 @@ export type Database = {
         Update: {
           content_hash?: string;
           delivery_id?: string;
+          evidence_hash?: string | null;
           id?: string;
           image_png?: string | null;
           ip?: string | null;
@@ -1651,9 +1666,28 @@ export type Database = {
         };
         Returns: string;
       };
+      signature_evidence_hash: {
+        Args: {
+          p_content_hash: string;
+          p_method: string;
+          p_image_png: string;
+          p_typed_name: string;
+          p_signed_at: string;
+          p_ip: string;
+          p_user_agent: string;
+          p_conducted_by: string;
+        };
+        Returns: string;
+      };
+      verify_delivery_evidence: {
+        Args: {
+          p_delivery: string;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
-      delivery_reason: "primeira_entrega" | "troca_vencimento" | "troca_dano" | "perda" | "novo_cargo" | "outro";
+      delivery_reason: "primeira_entrega" | "troca_vencimento" | "troca_dano" | "perda" | "novo_cargo" | "outro" | "devolucao_substituicao";
       epi_category: "cabeca" | "olhos_face" | "auditiva" | "respiratoria" | "tronco" | "membros_superiores" | "membros_inferiores" | "corpo_inteiro" | "quedas" | "outro";
       org_role: "owner" | "admin" | "safety" | "storekeeper" | "viewer";
       return_destination: "estoque" | "descarte";
@@ -1769,7 +1803,7 @@ export type Enums<
 export const Constants = {
   public: {
     Enums: {
-      delivery_reason: ["primeira_entrega", "troca_vencimento", "troca_dano", "perda", "novo_cargo", "outro"],
+      delivery_reason: ["primeira_entrega", "troca_vencimento", "troca_dano", "perda", "novo_cargo", "outro", "devolucao_substituicao"],
       epi_category: ["cabeca", "olhos_face", "auditiva", "respiratoria", "tronco", "membros_superiores", "membros_inferiores", "corpo_inteiro", "quedas", "outro"],
       org_role: ["owner", "admin", "safety", "storekeeper", "viewer"],
       return_destination: ["estoque", "descarte"],
