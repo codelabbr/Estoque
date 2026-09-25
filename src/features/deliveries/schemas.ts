@@ -1,16 +1,27 @@
 import { z } from "zod";
 import { DELIVERY_REASONS } from "./constants";
 
-export const deliveryItemSchema = z.object({
-  variantId: z.uuid("Selecione o tamanho"),
-  quantity: z.coerce
-    .number()
-    .int("Use um número inteiro")
-    .min(1, "Mínimo 1")
-    .max(999),
-  reason: z.enum(DELIVERY_REASONS, { error: "Selecione o motivo" }),
-  caOverride: z.boolean().default(false),
-});
+export const deliveryItemSchema = z
+  .object({
+    variantId: z.uuid("Selecione o tamanho"),
+    quantity: z.coerce
+      .number()
+      .int("Use um número inteiro")
+      .min(1, "Mínimo 1")
+      .max(999),
+    reason: z.enum(DELIVERY_REASONS, { error: "Selecione o motivo" }),
+    caOverride: z.boolean().default(false),
+    caOverrideReason: z
+      .string()
+      .trim()
+      .max(300, "Use no máximo 300 caracteres")
+      .optional()
+      .transform((v) => (v ? v : null)),
+  })
+  .refine((i) => !i.caOverride || (i.caOverrideReason?.length ?? 0) >= 10, {
+    message: "Justifique a entrega com CA vencido (mínimo 10 caracteres)",
+    path: ["caOverrideReason"],
+  });
 
 export const deliverySchema = z.object({
   employeeId: z.uuid(),

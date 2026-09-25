@@ -33,7 +33,44 @@ describe("deliverySchema", () => {
       quantity: 2,
       reason: "troca_dano",
       caOverride: false,
+      caOverrideReason: null,
     });
+  });
+
+  it("override de CA vencido exige justificativa de 10 caracteres", () => {
+    const base = { employeeId: id, locationId: id };
+    const item = {
+      variantId: id2,
+      quantity: "1",
+      reason: "primeira_entrega",
+      caOverride: true,
+    };
+    expect(deliverySchema.safeParse({ ...base, items: [item] }).success).toBe(
+      false,
+    );
+    expect(
+      deliverySchema.safeParse({
+        ...base,
+        items: [{ ...item, caOverrideReason: "urgente" }],
+      }).success,
+    ).toBe(false);
+    expect(
+      deliverySchema.safeParse({
+        ...base,
+        items: [{ ...item, caOverrideReason: "Lote novo chega amanhã" }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("aceita o motivo devolução e substituição", () => {
+    const r = deliverySchema.safeParse({
+      employeeId: id,
+      locationId: id,
+      items: [
+        { variantId: id2, quantity: "1", reason: "devolucao_substituicao" },
+      ],
+    });
+    expect(r.success).toBe(true);
   });
 });
 

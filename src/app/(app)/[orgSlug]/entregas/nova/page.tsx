@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { AvatarInitials } from "@/components/shared/avatar-initials";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { getOrgContext } from "@/lib/org";
-import { canOperateStock } from "@/lib/permissions";
+import { canOperateStock, isOrgAdmin } from "@/lib/permissions";
 import { todayInSaoPaulo } from "@/lib/format";
 import { listEpiOptions } from "@/features/epis/queries";
 import {
@@ -198,6 +198,7 @@ export default async function NewDeliveryPage({
           suggestions={suggestions}
           holdingsByEpi={holdingsByEpi}
           today={today}
+          canOverrideCa={isOrgAdmin(role)}
         />
       )}
     </div>

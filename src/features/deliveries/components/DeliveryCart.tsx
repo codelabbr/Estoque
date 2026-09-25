@@ -43,7 +43,10 @@ type Line = {
   quantity: string;
   reason: DeliveryReason;
   caOverride: boolean;
+  caOverrideReason: string;
 };
+
+const MIN_OVERRIDE_REASON = 10;
 
 let seq = 0;
 const newKey = () => `l${++seq}`;
@@ -57,6 +60,7 @@ export function DeliveryCart({
   suggestions,
   holdingsByEpi,
   today,
+  canOverrideCa,
 }: {
   orgSlug: string;
   employeeId: string;
@@ -66,6 +70,8 @@ export function DeliveryCart({
   suggestions: Suggestion[];
   holdingsByEpi: Record<string, { nextReplacementAt: string | null }>;
   today: string;
+  /** Proprietário/Admin: pode liberar EPI com CA vencido, com justificativa. */
+  canOverrideCa: boolean;
 }) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>([]);
@@ -91,6 +97,7 @@ export function DeliveryCart({
         quantity: partial?.quantity ?? "1",
         reason: partial?.reason ?? "primeira_entrega",
         caOverride: false,
+        caOverrideReason: "",
       },
     ]);
   }
@@ -112,11 +119,15 @@ export function DeliveryCart({
         l.reason === "troca_vencimento" && !!due && due > today ? due : null,
     };
   });
+  const overrideOk = (l: Line) =>
+    canOverrideCa &&
+    l.caOverride &&
+    l.caOverrideReason.trim().length >= MIN_OVERRIDE_REASON;
   const blocked =
     lines.length === 0 ||
     problems.some(
       (p, i) =>
-        p.incomplete || p.noStock || (p.caExpired && !lines[i].caOverride),
+        p.incomplete || p.noStock || (p.caExpired && !overrideOk(lines[i])),
     );
 
   function submit() {
@@ -131,6 +142,7 @@ export function DeliveryCart({
           quantity: l.quantity,
           reason: l.reason,
           caOverride: l.caOverride,
+          caOverrideReason: l.caOverride ? l.caOverrideReason : undefined,
         })),
       });
       if (!result.ok) {
@@ -239,6 +251,7 @@ export function DeliveryCart({
                               ? next.variants[0].id
                               : "",
                           caOverride: false,
+                          caOverrideReason: "",
                         });
                       }}
                     >
@@ -345,27 +358,62 @@ export function DeliveryCart({
                       </p>
                     )}
                     {p.caExpired && epi && (
-                      <div className="bg-status-irregular/60 flex flex-wrap items-center gap-3 rounded-xl px-3 py-2 text-sm">
-                        <AlertTriangle className="text-status-irregular-foreground size-4 shrink-0" />
-                        <span className="flex-1">
-                          CA {epi.caNumber} vencido em{" "}
-                          {formatDate(epi.caExpiresAt!)}.
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <Checkbox
-                            id={`override-${l.key}`}
-                            checked={l.caOverride}
-                            onCheckedChange={(v) =>
-                              update(l.key, { caOverride: v === true })
-                            }
-                          />
-                          <Label
-                            htmlFor={`override-${l.key}`}
-                            className="font-bold"
-                          >
-                            Entregar mesmo assim
-                          </Label>
-                        </span>
+                      <div className="bg-status-irregular/60 flex flex-col gap-2 rounded-xl px-3 py-2 text-sm">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <AlertTriangle className="text-status-irregular-foreground size-4 shrink-0" />
+                          <span className="flex-1">
+                            CA {epi.caNumber} vencido em{" "}
+                            {formatDate(epi.caExpiresAt!)}.{" "}
+                            {canOverrideCa
+                              ? "A entrega fica bloqueada, a menos que você libere com justificativa."
+                              : "Entrega bloqueada. Só proprietário ou administrador pode liberar."}
+                          </span>
+                          {canOverrideCa && (
+                            <span className="flex items-center gap-2">
+                              <Checkbox
+                                id={`override-${l.key}`}
+                                checked={l.caOverride}
+                                onCheckedChange={(v) =>
+                                  update(l.key, { caOverride: v === true })
+                                }
+                              />
+                              <Label
+                                htmlFor={`override-${l.key}`}
+                                className="font-bold"
+                              >
+                                Liberar com justificativa
+                              </Label>
+                            </span>
+                          )}
+                        </div>
+                        {canOverrideCa && l.caOverride && (
+                          <div>
+                            <Label
+                              htmlFor={`override-reason-${l.key}`}
+                              className="mb-1.5 block text-sm"
+                            >
+                              Justificativa (fica registrada na auditoria)
+                            </Label>
+                            <Textarea
+                              id={`override-reason-${l.key}`}
+                              rows={2}
+                              maxLength={300}
+                              placeholder="Ex.: novo lote com CA válido chega amanhã; uso emergencial autorizado pelo técnico."
+                              value={l.caOverrideReason}
+                              onChange={(e) =>
+                                update(l.key, {
+                                  caOverrideReason: e.target.value,
+                                })
+                              }
+                            />
+                            {l.caOverrideReason.trim().length <
+                              MIN_OVERRIDE_REASON && (
+                              <p className="text-muted-foreground mt-1 text-xs">
+                                Mínimo {MIN_OVERRIDE_REASON} caracteres.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                     {p.earlyReplacement && (
@@ -373,8 +421,7 @@ export function DeliveryCart({
                         <AlertTriangle className="text-status-atencao-foreground size-4 shrink-0" />
                         <span>
                           A troca só vence em {formatDate(p.earlyReplacement)}.
-                          Se for troca antecipada, use “Troca por dano” ou
-                          “Perda”.
+                          Se for troca antecipada, use “Dano” ou “Perda”.
                         </span>
                       </div>
                     )}

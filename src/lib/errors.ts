@@ -28,7 +28,11 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
   item_duplicado:
     "O mesmo EPI e tamanho aparece duas vezes. Junte as quantidades.",
   ca_vencido:
-    "Há EPI com CA vencido. Marque “Entregar mesmo assim” para confirmar ou escolha outro item.",
+    "Há EPI com CA vencido. Escolha outro item ou peça a um proprietário ou administrador para liberar com justificativa.",
+  override_ca_restrito:
+    "Só proprietário ou administrador pode liberar EPI com CA vencido.",
+  justificativa_obrigatoria:
+    "Escreva a justificativa para entregar EPI com CA vencido (mínimo 10 caracteres).",
   entrega_inexistente: "Entrega não encontrada.",
   entrega_nao_cancelavel:
     "Só é possível cancelar entregas que ainda não foram assinadas.",

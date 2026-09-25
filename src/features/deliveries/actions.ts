@@ -67,6 +67,7 @@ export async function deliverEpis(
       quantity: i.quantity,
       reason: i.reason,
       ca_override: i.caOverride,
+      ca_override_reason: i.caOverrideReason,
     })),
     p_notes: parsed.data.notes ?? undefined,
   });
