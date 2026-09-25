@@ -61,8 +61,8 @@ function requirementFields(defaults: {
         ? String(defaults.replacementDays)
         : "",
       placeholder: defaults.lifespanDays
-        ? `Padrão do EPI: ${defaults.lifespanDays}`
-        : "Sem periodicidade",
+        ? `Vida útil do EPI: ${defaults.lifespanDays}`
+        : "Vazio = vida útil do EPI",
       description:
         "Deixe vazio para usar a vida útil do EPI. Preencha para uma troca mais frequente neste cargo.",
     },
