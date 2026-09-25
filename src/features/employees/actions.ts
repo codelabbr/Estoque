@@ -156,10 +156,25 @@ const importRowSchema = z.object({
   email: z.string().nullable(),
 });
 
+export type ImportSkippedRow = {
+  cpf: string;
+  name: string;
+  reason: "ja_cadastrado" | "cargo_inexistente";
+};
+
+export type ImportEmployeesResult = {
+  inserted: number;
+  skipped: number;
+  skippedRows: ImportSkippedRow[];
+  createdJobRoles: string[];
+};
+
 export async function importEmployees(
   orgSlug: string,
   rows: unknown,
-): Promise<ActionResult<{ inserted: number; skipped: number }>> {
+  /** Cargo que não existe: cria (true) ou pula a linha (false). */
+  createJobRoles = false,
+): Promise<ActionResult<ImportEmployeesResult>> {
   const ctx = await guard(orgSlug);
   if (!ctx) return PERMISSION_DENIED;
   const parsed = z.array(importRowSchema).min(1).max(2000).safeParse(rows);
@@ -173,6 +188,7 @@ export async function importEmployees(
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("import_employees", {
     p_org: ctx.org.id,
+    p_create_job_roles: createJobRoles === true,
     p_rows: parsed.data.map((r) => ({
       full_name: r.fullName,
       cpf: r.cpf,
@@ -187,10 +203,20 @@ export async function importEmployees(
   if (error) return { ok: false, error: mapDbError(error) };
   revalidate(orgSlug);
   revalidatePath(`/${orgSlug}/cargos`);
-  const result = data as { inserted: number; skipped: number };
+  const result = data as {
+    inserted: number;
+    skipped: number;
+    skipped_rows: ImportSkippedRow[];
+    created_job_roles: string[];
+  };
   return {
     ok: true,
-    data: { inserted: result.inserted, skipped: result.skipped },
+    data: {
+      inserted: result.inserted,
+      skipped: result.skipped,
+      skippedRows: result.skipped_rows ?? [],
+      createdJobRoles: result.created_job_roles ?? [],
+    },
   };
 }
 

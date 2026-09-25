@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getOrgContext } from "@/lib/org";
 import { canManageRegistry } from "@/lib/permissions";
@@ -18,6 +19,42 @@ import {
 async function guard(orgSlug: string) {
   const ctx = await getOrgContext(orgSlug);
   return canManageRegistry(ctx.role) ? ctx : null;
+}
+
+// ── Importação de cargos ─────────────────────────────────────────────────
+const importJobRoleRowSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  cbo: z
+    .string()
+    .regex(/^\d{4}-?\d{2}$/)
+    .nullable(),
+  description: z.string().trim().max(500).nullable(),
+});
+
+export async function importJobRoles(
+  orgSlug: string,
+  rows: unknown,
+): Promise<ActionResult<{ inserted: number; skipped: string[] }>> {
+  const ctx = await guard(orgSlug);
+  if (!ctx) return PERMISSION_DENIED;
+  const parsed = z
+    .array(importJobRoleRowSchema)
+    .min(1)
+    .max(500)
+    .safeParse(rows);
+  if (!parsed.success)
+    return {
+      ok: false,
+      error: "A planilha tem linhas inválidas. Corrija e tente de novo.",
+    };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("import_job_roles", {
+    p_org: ctx.org.id,
+    p_rows: parsed.data,
+  });
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidatePath(`/${orgSlug}/cargos`);
+  return { ok: true, data: data as { inserted: number; skipped: string[] } };
 }
 
 // ── Unidades ──────────────────────────────────────────────────────────────

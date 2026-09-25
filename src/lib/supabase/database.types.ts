@@ -13,6 +13,53 @@ export type Database = {
   };
   public: {
     Tables: {
+      alert_settings: {
+        Row: {
+          enabled: boolean;
+          notify_ca: boolean;
+          notify_new_irregulars: boolean;
+          notify_replacements: boolean;
+          notify_signatures: boolean;
+          notify_stock: boolean;
+          notify_trainings: boolean;
+          organization_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          enabled?: boolean;
+          notify_ca?: boolean;
+          notify_new_irregulars?: boolean;
+          notify_replacements?: boolean;
+          notify_signatures?: boolean;
+          notify_stock?: boolean;
+          notify_trainings?: boolean;
+          organization_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          enabled?: boolean;
+          notify_ca?: boolean;
+          notify_new_irregulars?: boolean;
+          notify_replacements?: boolean;
+          notify_signatures?: boolean;
+          notify_stock?: boolean;
+          notify_trainings?: boolean;
+          organization_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alert_settings_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: true;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alert_states: {
         Row: {
           alert_key: string;
@@ -83,6 +130,35 @@ export type Database = {
           table_name?: string | null;
         };
         Relationships: [];
+      };
+      compliance_snapshots: {
+        Row: {
+          created_at: string;
+          irregular_employee_ids: string[];
+          organization_id: string;
+          taken_on: string;
+        };
+        Insert: {
+          created_at?: string;
+          irregular_employee_ids?: string[];
+          organization_id: string;
+          taken_on: string;
+        };
+        Update: {
+          created_at?: string;
+          irregular_employee_ids?: string[];
+          organization_id?: string;
+          taken_on?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compliance_snapshots_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       document_log: {
         Row: {
@@ -1587,6 +1663,14 @@ export type Database = {
         Returns: boolean;
       };
       import_employees: {
+        Args: {
+          p_org: string;
+          p_rows: Json;
+          p_create_job_roles?: boolean;
+        };
+        Returns: Json;
+      };
+      import_job_roles: {
         Args: {
           p_org: string;
           p_rows: Json;

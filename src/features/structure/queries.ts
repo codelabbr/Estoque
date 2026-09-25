@@ -47,6 +47,17 @@ export async function listJobRoles(orgId: string) {
   }));
 }
 
+/** Nomes de todos os cargos (inclusive arquivados): a importação os reaproveita pelo nome. */
+export async function listJobRoleNames(orgId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("job_roles")
+    .select("name")
+    .eq("organization_id", orgId);
+  if (error) throw error;
+  return data.map((r) => r.name);
+}
+
 export async function getJobRole(orgId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

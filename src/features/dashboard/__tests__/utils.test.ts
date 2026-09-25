@@ -92,4 +92,29 @@ describe("describeActivity (operações)", () => {
     );
     expect(e.text).toBe("cadastrou um funcionário (Ana Souza)");
   });
+
+  it("descreve alterações na matriz e liberação de CA vencido", () => {
+    const matrix = describeActivity(
+      {
+        ...base,
+        action: "update",
+        tableName: "job_role_epi_requirements",
+        actorId: "u1",
+        newData: { replacement_days: 15 },
+      },
+      ctx,
+    );
+    expect(matrix.text).toBe("alterou um EPI na matriz de um cargo");
+    const ca = describeActivity(
+      {
+        ...base,
+        action: "deliver_epis:ca_vencido",
+        tableName: "epi_delivery_items",
+        actorId: "u1",
+        newData: null,
+      },
+      ctx,
+    );
+    expect(ca.text).toBe("liberou a entrega de um EPI com CA vencido");
+  });
 });
