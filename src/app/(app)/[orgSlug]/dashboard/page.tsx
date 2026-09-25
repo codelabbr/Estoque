@@ -43,13 +43,10 @@ export default async function DashboardPage({
 }) {
   const { orgSlug } = await params;
   const { org, role, user } = await getOrgContext(orgSlug);
-  const data = await getDashboardData(org.id, user.id, org.name);
+  const data = await getDashboardData(org.id, orgSlug, user.id, org.name);
   const name = displayName(user.email);
   const initials = user.email.slice(0, 2).toUpperCase();
-  const { compliance } = data;
-  const compliancePct = compliance.total
-    ? Math.round((compliance.ok / compliance.total) * 100)
-    : null;
+  const { compliance, summary } = data;
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-8">
@@ -72,16 +69,18 @@ export default async function DashboardPage({
         />
         <StatStrip
           orgSlug={orgSlug}
-          compliancePct={compliancePct}
-          irregular={compliance.irregular}
+          compliancePct={summary.pct}
+          irregular={summary.irregular}
           pendingSignatures={data.pendingSignatures}
           stockCritical={data.stockCritical}
+          casExpiring={data.casExpiring}
+          trocasVencendo={summary.trocasVencendo}
+          treinamentosVencendo={summary.treinamentosVencendo}
         />
         <TodayList
           orgSlug={orgSlug}
-          alerts={data.todayAlerts}
-          totalCritical={data.alertCounts.critico}
-          totalAttention={data.alertCounts.atencao}
+          actions={data.today}
+          total={data.todayTotal}
         />
         <ActivityFeed
           entries={data.activity}
@@ -100,7 +99,11 @@ export default async function DashboardPage({
           setup={data.setup}
           canLoadDemo={isOrgAdmin(role)}
         />
-        <ComplianceCard orgSlug={orgSlug} {...compliance} />
+        <ComplianceCard
+          orgSlug={orgSlug}
+          {...compliance}
+          ranking={data.sectorRanking}
+        />
         <AlertRulesCard
           days={{
             ca: org.alert_days_ca,

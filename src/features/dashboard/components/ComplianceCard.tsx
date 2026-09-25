@@ -1,19 +1,22 @@
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import type { SectorRank } from "@/features/dashboard/compliance";
 
-/** Distribuição da conformidade: barra empilhada com legenda (ícone + texto + número). */
+/** Distribuição da conformidade (barra empilhada com legenda) + ranking por setor. */
 export function ComplianceCard({
   orgSlug,
   ok,
   atencao,
   irregular,
   total,
+  ranking = [],
 }: {
   orgSlug: string;
   ok: number;
   atencao: number;
   irregular: number;
   total: number;
+  ranking?: SectorRank[];
 }) {
   const parts = [
     {
@@ -26,7 +29,7 @@ export function ComplianceCard({
     },
     {
       key: "atencao",
-      label: "Atenção",
+      label: "Em dia, com avisos",
       value: atencao,
       icon: Clock,
       bar: "bg-status-atencao-foreground",
@@ -99,6 +102,43 @@ export function ComplianceCard({
             </li>
           ))}
         </ul>
+      )}
+      {ranking.length > 1 && (
+        <div className="border-t px-4 pt-3 pb-4">
+          <h3 className="text-sm font-bold">Por setor</h3>
+          <p className="text-muted-foreground text-xs">
+            % em dia, do pior para o melhor
+          </p>
+          <ol className="mt-2 flex flex-col gap-2">
+            {ranking.map((r) => (
+              <li key={r.sector}>
+                <div className="flex items-baseline justify-between gap-2 text-[15px]">
+                  <span className="truncate">{r.sector}</span>
+                  <span className="text-muted-foreground shrink-0 text-sm tabular-nums">
+                    {r.emDia}/{r.total} ·{" "}
+                    <strong className="text-foreground">{r.pct}%</strong>
+                  </span>
+                </div>
+                <div
+                  className="bg-border mt-1 h-1.5 overflow-hidden rounded-full"
+                  role="img"
+                  aria-label={`${r.sector}: ${r.pct}% em dia`}
+                >
+                  <div
+                    className={
+                      r.pct === 100
+                        ? "bg-status-ok-foreground h-full"
+                        : r.pct >= 50
+                          ? "bg-status-atencao-foreground h-full"
+                          : "bg-status-irregular-foreground h-full"
+                    }
+                    style={{ width: `${r.pct}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   );
