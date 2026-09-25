@@ -90,3 +90,26 @@ Formato: `## AAAA-MM-DD — Título` · Contexto · Decisão · Consequências.
 **Contexto:** o usuário pediu nova aparência usando como base o site acopecasoliveira.com.br: fundo quase preto esverdeado, verde-limão de destaque, títulos brancos em fonte geométrica pesada.
 **Decisão:** tokens de `globals.css` trocados. Escuro: fundo `oklch(0.155 0.012 150)` (#090e0a), cards um tom acima, primária verde-limão `oklch(0.77 0.2 134)` (#7bce33) com texto escuro nos botões. Claro: fundo levemente esverdeado e primária verde fechado `oklch(0.52 0.15 138)` (#367c14) com texto branco — o limão sobre branco não passa em contraste e `text-primary` é usado como cor de texto. Títulos `h1`/`h2` e `font-heading` em Montserrat; corpo continua Inter. Layout, espaçamentos e cores de status (verde/âmbar/vermelho/cinza-azulado) não mudam. Só a paleta foi inspirada; logo, nome e textos da APO não são usados.
 **Consequências:** contraste AA conferido (texto ≥ 17:1, muted ≥ 6,4:1, primária como texto ≥ 4,9:1, texto do botão ≥ 5,2:1). O e-mail diário usa #367c14. Ao criar telas novas, usar só os tokens (nada de cor fixa no componente).
+
+## 2026-09-25 — MVP de conformidade reaproveita as tabelas existentes
+
+**Contexto:** a especificação do MVP usa nomes em português (`entregas`, `entrega_itens`, `cargo_epis`, `movimentacoes_estoque`, `tipos_treinamento`...). As Fases 1–6 já criaram tabelas equivalentes em inglês, como pede o `CLAUDE.md`.
+**Decisão:** estender as tabelas existentes (`epi_deliveries`, `epi_delivery_items`, `job_role_epi_requirements`, `stock_movements`, `training_types`...) em vez de criar duplicadas. Estoque mínimo continua por tamanho (`epi_variants.min_stock`), mais preciso que por EPI; o custo unitário de referência é `epis.reference_cost`.
+**Consequências:** nada é migrado nem quebrado; os nomes da especificação são só vocabulário de produto.
+
+## 2026-09-25 — Motivos de entrega: valores antigos mantidos no banco
+
+**Contexto:** a especificação pede os motivos `troca_periodica` e `dano`. O motivo faz parte do `content_hash` de cada entrega, e renomear o valor do enum mudaria o hash das entregas já assinadas (a prova deixaria de conferir).
+**Decisão:** `troca_vencimento` e `troca_dano` continuam no banco e aparecem como "Troca periódica" e "Dano"; `devolucao_substituicao` foi adicionado. `novo_cargo` e `outro` continuam disponíveis.
+**Consequências:** hashes antigos continuam válidos. Mesma regra para a validade do CA: só entra no hash quando existe (teste de regressão compara com a fórmula anterior).
+
+## 2026-09-25 — Assinatura continua no banco (bytea), com hash de evidência
+
+**Contexto:** a especificação pede a imagem da assinatura em bucket privado do Storage. A decisão de 2026-09-23 já guarda o PNG em `signatures.image_png`, gravado na mesma transação que confere o hash, sem service role na rota pública.
+**Decisão:** manter o PNG no banco (privado por RLS, imutável por trigger) e acrescentar `signatures.evidence_hash` = sha256 de hash da entrega + sha256 da imagem (ou nome digitado) + momento + IP + user agent + responsável. `verify_delivery_evidence()` confere tudo; o detalhe da entrega mostra "Evidência íntegra".
+**Consequências:** a prova fica numa única transação atômica. Se o volume de imagens crescer, migrar para Storage mantendo o `evidence_hash` (que já cobre o conteúdo da imagem). Assinaturas anteriores ao Bloco A não têm `evidence_hash` e aparecem como "anterior à evidência completa".
+
+## 2026-09-25 — Override de CA vencido só para proprietário/admin
+
+**Decisão:** `deliver_epis` bloqueia EPI com CA vencido; a liberação exige papel `owner`/`admin` e justificativa (≥ 10 caracteres), gravada no item (`ca_override_reason`) e no `audit_log`.
+**Consequências:** `safety` e `storekeeper` veem o bloqueio e precisam pedir a liberação.

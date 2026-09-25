@@ -56,3 +56,26 @@ Cada fase termina com: testes passando, `docs/PROGRESS.md` atualizado e uma demo
 ## Depois do piloto
 
 WhatsApp (assinatura e alertas), QR code no crachá, multi-almoxarifado e transferências, integração com base de CAs, cobrança (planos), app PWA offline para balcão, empréstimo de ferramentas.
+
+## MVP de conformidade (Fase 1 do produto) — em andamento
+
+Blocos A (EPI/CA, matriz, entrega com assinatura, estoque), B (motor de conformidade, treinamentos, dashboard) e C (importação, alertas por e-mail, auditoria). Branch `feat/mvp-conformidade`.
+
+## Fase 2 do produto — próxima versão (não implementar ainda)
+
+- Modo quiosque/tablet com suporte offline para o almoxarifado
+- Custos por funcionário, setor e centro de custo, com detecção de consumo anormal
+- Alertas por WhatsApp
+- Perfis e permissões: técnico SST, almoxarife, gestor, auditor (somente leitura)
+- Dossiê do funcionário em PDF (EPIs + treinamentos + assinaturas)
+- Multiunidade/filiais com vários almoxarifados
+- Devolução, higienização e descarte com fluxo próprio
+
+## Fase 3 do produto — versão avançada (não implementar ainda)
+
+- Exportação para eSocial (S-2240 / EPI eficaz)
+- Integração com ERP/folha (TOTVS, Sankhya, Senior) e API pública
+- Painel para consultorias de SST: um login gerenciando várias organizações clientes
+- Previsão de compras
+- ASO/exames (PCMSO) e ordens de serviço de segurança (NR-1)
+- SSO; planos e cobrança por faixa de funcionários ativos, com módulos add-on
