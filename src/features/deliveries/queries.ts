@@ -61,7 +61,7 @@ export async function getDelivery(orgId: string, id: string) {
   const { data, error } = await supabase
     .from("epi_deliveries")
     .select(
-      "id, delivered_at, delivered_by, notes, employee_id, employee_name_snapshot, employee_cpf_snapshot, term_text, content_hash, signature_status, cancelled_at, cancel_reason, location_id, stock_locations(name), employees(id, phone, email, registration), epi_delivery_items(id, variant_id, quantity, reason, epi_name_snapshot, size_label_snapshot, ca_number_snapshot, ca_expired_override, next_replacement_at, returned_at, return_destination, return_notes)",
+      "id, delivered_at, delivered_by, notes, employee_id, employee_name_snapshot, employee_cpf_snapshot, term_text, content_hash, signature_status, cancelled_at, cancel_reason, location_id, stock_locations(name), employees(id, phone, email, registration), epi_delivery_items(id, variant_id, quantity, reason, epi_name_snapshot, size_label_snapshot, ca_number_snapshot, ca_expires_at_snapshot, ca_expired_override, ca_override_reason, next_replacement_at, returned_at, return_destination, return_notes)",
     )
     .eq("organization_id", orgId)
     .eq("id", id)
@@ -73,7 +73,7 @@ export async function getDelivery(orgId: string, id: string) {
     supabase
       .from("signatures")
       .select(
-        "method, typed_name, image_png, signed_at, ip, user_agent, content_hash",
+        "method, typed_name, image_png, signed_at, ip, user_agent, content_hash, evidence_hash",
       )
       .eq("delivery_id", id)
       .maybeSingle(),
@@ -89,8 +89,18 @@ export async function getDelivery(orgId: string, id: string) {
       .maybeSingle(),
   ]);
 
+  // null = assinatura anterior ao hash de evidência (Bloco A) ou sem assinatura.
+  let evidenceValid: boolean | null = null;
+  if (signature?.evidence_hash) {
+    const { data: ok } = await supabase.rpc("verify_delivery_evidence", {
+      p_delivery: id,
+    });
+    evidenceValid = ok === true;
+  }
+
   return {
     ...data,
+    evidenceValid,
     signature: signature
       ? {
           ...signature,

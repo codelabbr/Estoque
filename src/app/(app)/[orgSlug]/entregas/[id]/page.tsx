@@ -143,7 +143,8 @@ export default async function DeliveryDetailPage({
                 <p className="text-muted-foreground truncate text-sm">
                   {[
                     REASON_LABELS[i.reason],
-                    i.ca_number_snapshot && `CA ${i.ca_number_snapshot}`,
+                    i.ca_number_snapshot &&
+                      `CA ${i.ca_number_snapshot}${i.ca_expires_at_snapshot ? ` (val. ${formatDate(i.ca_expires_at_snapshot)})` : ""}`,
                     i.next_replacement_at &&
                       `troca em ${formatDate(i.next_replacement_at)}`,
                     i.returned_at &&
@@ -152,9 +153,14 @@ export default async function DeliveryDetailPage({
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
+                {i.ca_override_reason && (
+                  <p className="text-status-irregular-foreground mt-1 text-sm">
+                    CA vencido liberado: {i.ca_override_reason}
+                  </p>
+                )}
               </div>
               {i.ca_expired_override && (
-                <span title="Entregue com CA vencido (confirmado pelo usuário)">
+                <span title="Entregue com CA vencido, liberado com justificativa">
                   <AlertTriangle
                     className="text-status-irregular-foreground size-5"
                     aria-label="CA vencido"
@@ -216,6 +222,22 @@ export default async function DeliveryDetailPage({
                       {delivery.content_hash.slice(0, 16)}
                     </code>
                   ),
+                },
+                {
+                  label: "Evidência (dados + assinatura)",
+                  value:
+                    delivery.evidenceValid === null ? (
+                      "Registro anterior à evidência completa"
+                    ) : (
+                      <StatusBadge
+                        status={delivery.evidenceValid ? "ok" : "irregular"}
+                        label={
+                          delivery.evidenceValid
+                            ? `Íntegra · ${delivery.signature.evidence_hash?.slice(0, 12)}`
+                            : "Não confere"
+                        }
+                      />
+                    ),
                 },
               ]}
             />

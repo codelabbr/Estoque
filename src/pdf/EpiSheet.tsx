@@ -18,6 +18,8 @@ export type EpiSheetData = {
     size: string;
     quantity: number;
     ca: string | null;
+    /** Validade do CA no momento da entrega (snapshot), já formatada. */
+    caValidity: string | null;
     reason: string;
     returnedAt: string | null;
     signature:
@@ -123,7 +125,10 @@ export function EpiSheet({ data }: { data: EpiSheetData }) {
               <Text style={[base.td, { width: 26, textAlign: "center" }]}>
                 {r.quantity}
               </Text>
-              <Text style={[base.td, { width: 40 }]}>{r.ca ?? "—"}</Text>
+              <Text style={[base.td, { width: 40 }]}>
+                {r.ca ?? "—"}
+                {r.caValidity ? `\nval. ${r.caValidity}` : ""}
+              </Text>
               <Text style={[base.td, { width: 72 }]}>{r.reason}</Text>
               <Text style={[base.td, { width: 52 }]}>
                 {r.returnedAt ?? "—"}
@@ -156,7 +161,8 @@ export function EpiSheet({ data }: { data: EpiSheetData }) {
           ))}
           {data.rows.some((r) => r.caOverride) && (
             <Text style={[base.muted, { marginTop: 6, fontSize: 7.5 }]}>
-              * Entregue com CA vencido, com confirmação registrada no sistema.
+              * Entregue com CA vencido, liberada por proprietário ou
+              administrador com justificativa registrada na auditoria.
             </Text>
           )}
         </View>

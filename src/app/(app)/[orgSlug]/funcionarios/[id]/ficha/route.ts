@@ -27,7 +27,7 @@ export async function GET(
   const { data: deliveries, error } = await supabase
     .from("epi_deliveries")
     .select(
-      "id, delivered_at, signature_status, epi_delivery_items(epi_name_snapshot, size_label_snapshot, quantity, ca_number_snapshot, reason, returned_at, ca_expired_override)",
+      "id, delivered_at, signature_status, epi_delivery_items(epi_name_snapshot, size_label_snapshot, quantity, ca_number_snapshot, ca_expires_at_snapshot, reason, returned_at, ca_expired_override)",
     )
     .eq("organization_id", org.id)
     .eq("employee_id", id)
@@ -86,6 +86,9 @@ export async function GET(
         size: i.size_label_snapshot,
         quantity: i.quantity,
         ca: i.ca_number_snapshot,
+        caValidity: i.ca_expires_at_snapshot
+          ? formatDate(i.ca_expires_at_snapshot)
+          : null,
         reason: REASON_LABELS[i.reason],
         returnedAt: i.returned_at ? formatDate(i.returned_at) : null,
         signature,
