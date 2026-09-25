@@ -16,6 +16,7 @@ export type DashboardData = {
   stockCritical: number;
   setup: {
     epis: boolean;
+    matrix: boolean;
     employees: boolean;
     stockEntry: boolean;
     delivery: boolean;
@@ -44,6 +45,7 @@ export async function getDashboardData(
     employees,
     entries,
     anyDelivery,
+    matrix,
   ] = await Promise.all([
     supabase
       .from("organization_members")
@@ -90,6 +92,10 @@ export async function getDashboardData(
       .from("epi_deliveries")
       .select("id", head)
       .eq("organization_id", orgId),
+    supabase
+      .from("job_role_epi_requirements")
+      .select("epi_id", head)
+      .eq("organization_id", orgId),
   ]);
 
   const dist = { ok: 0, atencao: 0, irregular: 0, total: 0 };
@@ -125,6 +131,7 @@ export async function getDashboardData(
     stockCritical: alerts.filter((a) => a.kind === "estoque_minimo").length,
     setup: {
       epis: (epis.count ?? 0) > 0,
+      matrix: (matrix.count ?? 0) > 0,
       employees: (employees.count ?? 0) > 0,
       stockEntry: (entries.count ?? 0) > 0,
       delivery: (anyDelivery.count ?? 0) > 0,

@@ -8,6 +8,7 @@ import { mapDbError } from "@/lib/errors";
 import { invalid, PERMISSION_DENIED, type ActionResult } from "@/lib/actions";
 import {
   epiRequirementSchema,
+  epiRequirementUpdateSchema,
   jobRoleSchema,
   sectorSchema,
   trainingRequirementSchema,
@@ -179,10 +180,46 @@ export async function addEpiRequirement(
     job_role_id: jobRoleId,
     epi_id: parsed.data.epiId,
     quantity: parsed.data.quantity,
+    replacement_days: parsed.data.replacementDays,
+    mandatory: parsed.data.mandatory,
   });
   if (error) return { ok: false, error: mapDbError(error) };
-  revalidatePath(`/${orgSlug}/cargos/${jobRoleId}`);
+  revalidateMatrix(orgSlug, jobRoleId);
   return { ok: true, data: undefined };
+}
+
+export async function updateEpiRequirement(
+  orgSlug: string,
+  jobRoleId: string,
+  epiId: string,
+  input: unknown,
+): Promise<ActionResult> {
+  const ctx = await guard(orgSlug);
+  if (!ctx) return PERMISSION_DENIED;
+  const parsed = epiRequirementUpdateSchema.safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("job_role_epi_requirements")
+    .update({
+      quantity: parsed.data.quantity,
+      replacement_days: parsed.data.replacementDays,
+      mandatory: parsed.data.mandatory,
+    })
+    .eq("organization_id", ctx.org.id)
+    .eq("job_role_id", jobRoleId)
+    .eq("epi_id", epiId);
+  if (error) return { ok: false, error: mapDbError(error) };
+  revalidateMatrix(orgSlug, jobRoleId);
+  return { ok: true, data: undefined };
+}
+
+/** A matriz muda sugestões de entrega e a conformidade do dashboard. */
+function revalidateMatrix(orgSlug: string, jobRoleId: string) {
+  revalidatePath(`/${orgSlug}/cargos/${jobRoleId}`);
+  revalidatePath(`/${orgSlug}/cargos`);
+  revalidatePath(`/${orgSlug}/dashboard`);
 }
 
 export async function removeEpiRequirement(
@@ -200,7 +237,7 @@ export async function removeEpiRequirement(
     .eq("job_role_id", jobRoleId)
     .eq("epi_id", epiId);
   if (error) return { ok: false, error: mapDbError(error) };
-  revalidatePath(`/${orgSlug}/cargos/${jobRoleId}`);
+  revalidateMatrix(orgSlug, jobRoleId);
   return { ok: true, data: undefined };
 }
 

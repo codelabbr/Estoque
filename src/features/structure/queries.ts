@@ -52,7 +52,7 @@ export async function getJobRole(orgId: string, id: string) {
   const { data, error } = await supabase
     .from("job_roles")
     .select(
-      "id, name, cbo, description, archived_at, job_role_epi_requirements(quantity, epis(id, name, ca_number, category)), job_role_training_requirements(training_types(id, name, regulation, validity_months))",
+      "id, name, cbo, description, archived_at, job_role_epi_requirements(quantity, replacement_days, mandatory, epis(id, name, ca_number, category, lifespan_days)), job_role_training_requirements(training_types(id, name, regulation, validity_months))",
     )
     .eq("organization_id", orgId)
     .eq("id", id)

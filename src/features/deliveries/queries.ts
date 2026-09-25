@@ -156,10 +156,16 @@ export async function getCounterContext(orgId: string, employeeId: string) {
     employee.job_role_id
       ? supabase
           .from("job_role_epi_requirements")
-          .select("epi_id, quantity")
+          .select("epi_id, quantity, mandatory")
           .eq("organization_id", orgId)
           .eq("job_role_id", employee.job_role_id)
-      : Promise.resolve({ data: [] as { epi_id: string; quantity: number }[] }),
+      : Promise.resolve({
+          data: [] as {
+            epi_id: string;
+            quantity: number;
+            mandatory: boolean;
+          }[],
+        }),
     getEmployeeHoldings(orgId, employeeId),
     supabase
       .from("epi_delivery_items")

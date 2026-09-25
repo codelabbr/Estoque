@@ -34,14 +34,33 @@ export const jobRoleSchema = z.object({
   description: optionalText,
 });
 
-export const epiRequirementSchema = z.object({
-  epiId: z.uuid("Selecione o EPI"),
+const epiRequirementFields = {
   quantity: z.coerce
     .number({ error: "Informe a quantidade" })
     .int("Use um número inteiro")
     .min(1, "Mínimo 1")
     .max(99, "Máximo 99"),
+  /** Vazio = usa a vida útil do EPI. */
+  replacementDays: z
+    .union([z.literal(""), z.coerce.number()])
+    .optional()
+    .transform((v) => (v === "" || v === undefined ? null : v))
+    .refine(
+      (v) => v === null || (Number.isInteger(v) && v >= 1 && v <= 3650),
+      "Use um número inteiro de dias entre 1 e 3650",
+    ),
+  mandatory: z
+    .enum(["sim", "nao"], { error: "Escolha se é obrigatório" })
+    .default("sim")
+    .transform((v) => v === "sim"),
+};
+
+export const epiRequirementSchema = z.object({
+  epiId: z.uuid("Selecione o EPI"),
+  ...epiRequirementFields,
 });
+
+export const epiRequirementUpdateSchema = z.object(epiRequirementFields);
 
 export const trainingRequirementSchema = z.object({
   trainingTypeId: z.uuid("Selecione o treinamento"),

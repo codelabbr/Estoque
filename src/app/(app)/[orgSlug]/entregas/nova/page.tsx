@@ -87,7 +87,11 @@ export default async function NewDeliveryPage({
 
   const activeEpiIds = new Set(epis.map((e) => e.id));
   const suggestions: Suggestion[] = [];
-  for (const req of context.requirements) {
+  // Obrigatórios primeiro: são os que tornam o funcionário irregular.
+  const requirements = [...context.requirements].sort(
+    (x, y) => Number(y.mandatory) - Number(x.mandatory),
+  );
+  for (const req of requirements) {
     if (
       !activeEpiIds.has(req.epi_id) ||
       context.everDeliveredEpiIds.includes(req.epi_id)
@@ -98,7 +102,9 @@ export default async function NewDeliveryPage({
       variantId: context.lastVariantByEpi[req.epi_id] ?? null,
       reason: "primeira_entrega",
       quantity: req.quantity,
-      why: "obrigatório do cargo",
+      why: req.mandatory
+        ? "obrigatório do cargo, nunca entregue"
+        : "recomendado para o cargo",
     });
   }
   const holdingsByEpi: Record<string, { nextReplacementAt: string | null }> =

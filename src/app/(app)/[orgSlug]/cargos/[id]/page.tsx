@@ -26,8 +26,66 @@ import {
   archiveJobRole,
   removeEpiRequirement,
   removeTrainingRequirement,
+  updateEpiRequirement,
   updateJobRole,
 } from "@/features/structure/actions";
+import { StatusBadge } from "@/components/shared/status-badge";
+import type { DialogField } from "@/components/shared/dialog-form";
+
+const MANDATORY_OPTIONS = [
+  { value: "sim", label: "Obrigatório (conta na conformidade)" },
+  { value: "nao", label: "Recomendado (só aparece como sugestão)" },
+];
+
+function requirementFields(defaults: {
+  quantity: number;
+  replacementDays: number | null;
+  mandatory: boolean;
+  lifespanDays: number | null;
+}): DialogField[] {
+  return [
+    {
+      name: "quantity",
+      label: "Quantidade por entrega",
+      type: "number",
+      required: true,
+      defaultValue: String(defaults.quantity),
+      inputMode: "numeric",
+    },
+    {
+      name: "replacementDays",
+      label: "Troca a cada (dias)",
+      type: "number",
+      inputMode: "numeric",
+      defaultValue: defaults.replacementDays
+        ? String(defaults.replacementDays)
+        : "",
+      placeholder: defaults.lifespanDays
+        ? `Padrão do EPI: ${defaults.lifespanDays}`
+        : "Sem periodicidade",
+      description:
+        "Deixe vazio para usar a vida útil do EPI. Preencha para uma troca mais frequente neste cargo.",
+    },
+    {
+      name: "mandatory",
+      label: "Exigência",
+      type: "select",
+      required: true,
+      defaultValue: defaults.mandatory ? "sim" : "nao",
+      options: MANDATORY_OPTIONS,
+    },
+  ];
+}
+
+function periodLabel(
+  replacementDays: number | null,
+  lifespanDays: number | null,
+) {
+  if (replacementDays)
+    return `troca a cada ${replacementDays} dias neste cargo`;
+  if (lifespanDays) return `troca a cada ${lifespanDays} dias (vida útil)`;
+  return "sem periodicidade de troca";
+}
 
 export const metadata: Metadata = { title: "Cargo — Almox SST" };
 
@@ -128,7 +186,7 @@ export default async function JobRoleDetailPage({
       <Panel className="animate-fade-up">
         <PanelHeader
           title="EPIs obrigatórios"
-          description="Sugeridos automaticamente na entrega e usados na conformidade."
+          description="Sugeridos automaticamente na entrega. Os obrigatórios contam na conformidade."
           actions={
             canEdit &&
             availableEpis.length > 0 && (
@@ -152,14 +210,12 @@ export default async function JobRoleDetailPage({
                         : e.name,
                     })),
                   },
-                  {
-                    name: "quantity",
-                    label: "Quantidade por entrega",
-                    type: "number",
-                    required: true,
-                    defaultValue: "1",
-                    inputMode: "numeric",
-                  },
+                  ...requirementFields({
+                    quantity: 1,
+                    replacementDays: null,
+                    mandatory: true,
+                    lifespanDays: null,
+                  }),
                 ]}
                 submitLabel="Adicionar"
                 successMessage="EPI adicionado ao cargo"
@@ -189,9 +245,44 @@ export default async function JobRoleDetailPage({
                   <p className="truncate font-medium">{r.epis!.name}</p>
                   <p className="text-muted-foreground text-sm">
                     {r.quantity} {r.quantity === 1 ? "unidade" : "unidades"}
+                    {" · "}
+                    {periodLabel(r.replacement_days, r.epis!.lifespan_days)}
                     {r.epis!.ca_number && ` · CA ${r.epis!.ca_number}`}
                   </p>
                 </div>
+                <StatusBadge
+                  status={r.mandatory ? "ok" : "pendente"}
+                  label={r.mandatory ? "Obrigatório" : "Recomendado"}
+                />
+                {canEdit && (
+                  <DialogForm
+                    trigger={
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="rounded-full"
+                        aria-label={`Editar ${r.epis!.name}`}
+                      >
+                        <Pencil />
+                      </Button>
+                    }
+                    title={`Editar ${r.epis!.name} neste cargo`}
+                    fields={requirementFields({
+                      quantity: r.quantity,
+                      replacementDays: r.replacement_days,
+                      mandatory: r.mandatory,
+                      lifespanDays: r.epis!.lifespan_days,
+                    })}
+                    submitLabel="Salvar"
+                    successMessage="Matriz atualizada"
+                    action={updateEpiRequirement.bind(
+                      null,
+                      orgSlug,
+                      id,
+                      r.epis!.id,
+                    )}
+                  />
+                )}
                 {canEdit && (
                   <ConfirmDialog
                     trigger={

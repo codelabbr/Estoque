@@ -14,6 +14,7 @@ export function SetupChecklist({
   canLoadDemo?: boolean;
   setup: {
     epis: boolean;
+    matrix: boolean;
     employees: boolean;
     stockEntry: boolean;
     delivery: boolean;
@@ -30,6 +31,11 @@ export function SetupChecklist({
       label: "Cadastrar EPIs",
       done: setup.epis,
       href: `/${orgSlug}/epis/novo`,
+    },
+    {
+      label: "Montar matriz de EPIs por cargo",
+      done: setup.matrix,
+      href: `/${orgSlug}/cargos`,
     },
     {
       label: "Cadastrar funcionários",
