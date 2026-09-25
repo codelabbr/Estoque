@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react";
+import { BriefcaseBusiness, ChevronRight, FileUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { Panel } from "@/components/shared/panel";
@@ -55,7 +55,18 @@ export default async function JobRolesPage({
       <PageHeader
         title="Cargos"
         description="Cada cargo define os EPIs e treinamentos obrigatórios da função."
-        actions={newButton}
+        actions={
+          canEdit && (
+            <>
+              <Button asChild variant="outline" className="rounded-full">
+                <Link href={`/${orgSlug}/cargos/importar`}>
+                  <FileUp /> Importar
+                </Link>
+              </Button>
+              {newButton}
+            </>
+          )
+        }
       />
       <Panel className="animate-fade-up">
         {jobRoles.length === 0 ? (
